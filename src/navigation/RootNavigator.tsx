@@ -1,12 +1,15 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack"
 import React from "react"
+import { ToolBarComponent } from "../components/ToolBarComponent";
 import { HomeScreen } from "../screens/HomeScreen";
 import { SplashScreen } from "../screens/SplashScreen";
+import { BottomTabs } from "./BottomTabs";
 
 export type RootStackParamList = {
     Splash: undefined,
     Home: undefined,
+    Main: undefined
 }
 
 const Stack = createStackNavigator();
@@ -16,10 +19,33 @@ export const RootNavigator :React.FC = () => {
         <NavigationContainer>
             <Stack.Navigator
                 initialRouteName="Splash"
-                screenOptions={{headerShown: false}}
+                screenOptions={{headerShown: true}}
+                // screenOptions={{
+                //     header: () => <ToolBarComponent bill={false}/>, // default
+                // }}
             >
-                <Stack.Screen name="Splash" component={SplashScreen}/>
-                <Stack.Screen name="Home" component={HomeScreen}/>
+                <Stack.Screen 
+                    name="Splash" 
+                    component={SplashScreen}
+                    options={{
+                        headerShown: false
+                    }}
+                />
+                <Stack.Screen 
+                    name="Home" 
+                    component={HomeScreen}
+                    options={{
+                        header: () => <ToolBarComponent bill={true}/>
+                    }}
+                />
+
+                <Stack.Screen   
+                    name="Main" 
+                    component={BottomTabs} 
+                    options={{
+                        headerShown: false   // ẩn header mặc định
+                    }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     )

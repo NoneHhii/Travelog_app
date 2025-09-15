@@ -10,5 +10,7 @@ export const colors = {
     green: '#115D33',
     light_black: "#212121",
     blue: "blue",
-    blue_splash: "#0c7ecc"
+    blue_splash: "#0c7ecc",
+    themeGra1: "#0099FF",
+    themeGra2: "#0464B6",
 }
