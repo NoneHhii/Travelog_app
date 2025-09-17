@@ -94,7 +94,17 @@ export const AccountScreen: React.FC = () => {
             />
           ))}
         </View>
-        <View style={{ marginTop: 25 }}></View>
+        <View style={{ marginTop: 25, marginBottom: 250 }}>
+          <Text style={styles.text}>Service</Text>
+          {accountOption2.map((item) => (
+            <ViewOptionComponent
+              key={item.id}
+              img={item.img}
+              title={item.title}
+              content={item.content}
+            />
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
@@ -174,5 +184,25 @@ const accountOption = [
     title: "Reward Zone",
     content:
       "Track reward programs you’ve joined or get started to earn more rewards",
+  },
+];
+const accountOption2 = [
+  {
+    id: 1,
+    img: require("../../assets/AccountPage/question 1.png"),
+    title: "Help Center",
+    content: "Find the best answer to your questions!",
+  },
+  {
+    id: 2,
+    img: require("../../assets/AccountPage/customer-service 1.png"),
+    title: "My Missions",
+    content: "Get help from our Customer Service",
+  },
+  {
+    id: 3,
+    img: require("../../assets/AccountPage/settings 1.png"),
+    title: "Reward Zone",
+    content: "View and set your account preferences",
   },
 ];

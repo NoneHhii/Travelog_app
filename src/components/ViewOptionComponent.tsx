@@ -24,7 +24,7 @@ const ViewOptionComponent = ({ img, title, content }) => {
         >
           <View>
             <Text style={{ fontWeight: "bold", fontSize: 25 }}>{title}</Text>
-            <Text>{content}</Text>
+            <Text style={{ width: 350 }}>{content}</Text>
           </View>
           <View>
             <Image
