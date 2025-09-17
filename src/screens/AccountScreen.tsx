@@ -1,10 +1,18 @@
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import ViewOptionComponent from "../components/ViewOptionComponent";
 
 export const AccountScreen: React.FC = () => {
   return (
-    <View>
+    <ScrollView>
       <View style={styles.circleBorder}></View>
       <View style={styles.container}>
         <View
@@ -68,14 +76,27 @@ export const AccountScreen: React.FC = () => {
           <Image source={require("../../assets/AccountPage/white_arrow.png")} />
         </LinearGradient>
         <View style={{ marginTop: 25 }}>
-          <Text style={styles.text}>My Payment Options</Text>
+          <Text style={styles.text}>My Payment Option</Text>
+          <ViewOptionComponent
+            img={require("../../assets/AccountPage/source_payment-protection (2).png")}
+            title={"Payments"}
+            content={"Add or manage your saved cards"}
+          />
         </View>
         <View style={{ marginTop: 25 }}>
           <Text style={styles.text}>My rewards</Text>
+          {accountOption.map((item) => (
+            <ViewOptionComponent
+              key={item.id}
+              img={item.img}
+              title={item.title}
+              content={item.content}
+            />
+          ))}
         </View>
         <View style={{ marginTop: 25 }}></View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -114,7 +135,6 @@ const styles = StyleSheet.create({
   vip: {
     height: 60,
     width: 550,
-    backgroundColor: "red",
     borderRadius: 20,
     justifyContent: "space-between",
     flexDirection: "row",
@@ -125,5 +145,34 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 15,
     fontWeight: "bold",
+    marginBottom: 20,
   },
 });
+
+const accountOption = [
+  {
+    id: 1,
+    img: require("../../assets/AccountPage/dollar 1.png"),
+    title: "0 Points",
+    content: "Trade points for coupons and learn how to earn more!",
+  },
+  {
+    id: 2,
+    img: require("../../assets/AccountPage/peak 1 (1).png"),
+    title: "My Missions",
+    content: "Complete more Missions, unlock more rewards",
+  },
+  {
+    id: 3,
+    img: require("../../assets/AccountPage/coupons 1.png"),
+    title: "My Coupons",
+    content: "View coupons that you can use now",
+  },
+  {
+    id: 4,
+    img: require("../../assets/AccountPage/voucher 1.png"),
+    title: "Reward Zone",
+    content:
+      "Track reward programs you’ve joined or get started to earn more rewards",
+  },
+];
