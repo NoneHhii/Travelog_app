@@ -2,15 +2,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React, { useEffect, useRef } from "react";
 import { colors } from "../constants/colors";
 import { HomeScreen } from "../screens/HomeScreen";
-<<<<<<< HEAD
 import { BookingScreen } from "../screens/BookingScreen";
 import { SavingScreen } from "../screens/SavingScreen";
 import {Image, Animated} from "react-native"
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-=======
-import { Image, Animated } from "react-native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
->>>>>>> GHuy
 import { ToolBarComponent } from "../components/ToolBarComponent";
 import { AccountScreen } from "../screens/AccountScreen";
 
@@ -66,74 +61,38 @@ export const BottomTabs: React.FC = () => {
               useNativeDriver: true,
             }).start();
           }, [focused]);
-
-<<<<<<< HEAD
-                    return (
-                        <Animated.View
-                            style={{
-                                transform: [{scale: scaleAnimate}],
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Image
-                                source={iconSource}
-                                style={{width: size, height: size, tintColor: color}}
-                                resizeMode="contain"
-                            />
-                        </Animated.View>
-                    )
-                }
-            })}
-        >
-            <Tab.Screen 
-                name="Home" 
-                component={HomeScreen}
-            />
-            <Tab.Screen name="explore" component={HomeScreen}/>
-            <Tab.Screen 
-                name="bookings" 
-                component={BookingScreen}
-                options={{
-                    header: () => <ToolBarComponent bill={true}/>
-                }}
-            />
-            <Tab.Screen name="save" component={SavingScreen}/>
-            <Tab.Screen name="account" component={HomeScreen}/>
-        </Tab.Navigator>
-    )
-}
-=======
-          return (
-            <Animated.View
-              style={{
-                transform: [{ scale: scaleAnimate }],
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Image
-                source={iconSource}
-                style={{ width: size, height: size, tintColor: color }}
-                resizeMode="contain"
-              />
-            </Animated.View>
-          );
-        },
+            return (
+                <Animated.View
+                    style={{
+                        transform: [{scale: scaleAnimate}],
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Image
+                        source={iconSource}
+                        style={{width: size, height: size, tintColor: color}}
+                        resizeMode="contain"
+                    />
+                </Animated.View>
+            )
+          }
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="explore" component={HomeScreen} />
-      <Tab.Screen
-        name="bookings"
-        component={HomeScreen}
-        options={{
-          header: () => <ToolBarComponent bill={true} />,
-        }}
+      <Tab.Screen 
+          name="Home" 
+          component={HomeScreen}
       />
-      <Tab.Screen name="save" component={HomeScreen} />
-      <Tab.Screen name="account" component={AccountScreen} />
+      <Tab.Screen name="explore" component={HomeScreen}/>
+      <Tab.Screen 
+          name="bookings" 
+          component={BookingScreen}
+          options={{
+              header: () => <ToolBarComponent bill={true}/>
+          }}
+      />
+      <Tab.Screen name="save" component={SavingScreen}/>
+      <Tab.Screen name="account" component={AccountScreen}/>
     </Tab.Navigator>
-  );
-};
->>>>>>> GHuy
+  )
+}
