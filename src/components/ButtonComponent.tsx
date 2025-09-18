@@ -1,5 +1,5 @@
-import React, {ReactNode} from "react";
-import {StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { ReactNode } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../constants/colors";
 import { fontFamilies } from "../types/fontFamilies";
 import { TextComponent } from "./TextComponent";
@@ -74,19 +74,19 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
 }
 
 const styles = StyleSheet.create({
-    button: {
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        margin: 8,
-    },
-    text: {
-        fontSize: 16,
-        fontWeight: 600,
-    },
-    disable: {
-        opacity: 0.5,
-    }
-})
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 8,
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: 600,
+  },
+  disable: {
+    opacity: 0.5,
+  },
+});

@@ -2,6 +2,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React, { useEffect, useRef } from "react";
 import { colors } from "../constants/colors";
 import { HomeScreen } from "../screens/HomeScreen";
+import { BookingScreen } from "../screens/BookingScreen";
+import { SavingScreen } from "../screens/SavingScreen";
 import {Image, Animated} from "react-native"
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ToolBarComponent } from "../components/ToolBarComponent";
@@ -85,12 +87,12 @@ export const BottomTabs: React.FC = () => {
             <Tab.Screen name="explore" component={HomeScreen}/>
             <Tab.Screen 
                 name="bookings" 
-                component={HomeScreen}
+                component={BookingScreen}
                 options={{
                     header: () => <ToolBarComponent bill={true}/>
                 }}
             />
-            <Tab.Screen name="save" component={HomeScreen}/>
+            <Tab.Screen name="save" component={SavingScreen}/>
             <Tab.Screen name="account" component={HomeScreen}/>
         </Tab.Navigator>
     )

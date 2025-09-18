@@ -20,7 +20,12 @@
     "react-native-linear-gradient": "^2.8.3",
     "react-native-reanimated": "^4.1.0",
     "react-native-safe-area-context": "^5.6.1",
+<<<<<<< HEAD
     "react-native-screens": "^4.15.4"
+=======
+    "react-native-screens": "^4.15.4",
+    "start": "^5.1.0"
+>>>>>>> THuy
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
