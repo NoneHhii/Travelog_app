@@ -15,7 +15,7 @@ export const SplashScreen : React.FC = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            navigation.replace("Main");
+            navigation.replace("Intro");
         }, 3000);
 
         return () => clearTimeout(timer);

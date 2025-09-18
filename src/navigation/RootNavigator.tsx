@@ -3,13 +3,15 @@ import { createStackNavigator } from "@react-navigation/stack"
 import React from "react"
 import { ToolBarComponent } from "../components/ToolBarComponent";
 import { HomeScreen } from "../screens/HomeScreen";
+import { IntroPage } from "../screens/IntroPage";
 import { SplashScreen } from "../screens/SplashScreen";
 import { BottomTabs } from "./BottomTabs";
 
 export type RootStackParamList = {
     Splash: undefined,
     Home: undefined,
-    Main: undefined
+    Intro: undefined,
+    Main: undefined,
 }
 
 const Stack = createStackNavigator();
@@ -43,7 +45,15 @@ export const RootNavigator :React.FC = () => {
                     name="Main" 
                     component={BottomTabs} 
                     options={{
-                        headerShown: false   // ẩn header mặc định
+                        headerShown: false 
+                    }}
+                />
+
+                <Stack.Screen
+                    name="Intro"
+                    component={IntroPage}
+                    options={{
+                        headerShown: false 
                     }}
                 />
             </Stack.Navigator>

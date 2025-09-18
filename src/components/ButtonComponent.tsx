@@ -14,8 +14,10 @@ interface ButtonProps {
     iconFlex?: 'left' | 'right',
     type: 'button' | 'link' | 'text',
     icon?: ReactNode,
-    textFont?: string,
-    
+    textFont?: any,
+    width?: any,
+    height?: any,
+    textSize?: number,
 }
 
 export const ButtonComponent : React.FC<ButtonProps> = ({
@@ -29,14 +31,18 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
     type,
     icon,
     textFont,
+    width,
+    height,
+    textSize = 14,
 }) => {
     return type === 'button' ? (
-        <View style={{alignItems: 'center'}}>
+        <View style={{alignItems: 'center', width: "100%"}}>
             <TouchableOpacity 
                 style={[
                     styles.button,
                     {backgroundColor},
-                    disable && styles.disable
+                    disable && styles.disable,
+                    {width: width, height: height}
                 ]}
                 onPress = {onPress}
                 disabled = {disable}
@@ -48,6 +54,8 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
                     styles={[styles.text]}
                     flex={icon && iconFlex === 'right' ? 1 : 0}
                     font = {textFont ?? fontFamilies.medium}
+                    fontWeight = {textFont ?? fontFamilies.medium}
+                    size = {textSize}
                 />
             </TouchableOpacity>
         </View>
@@ -57,6 +65,9 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
                 text={text}
                 flex={0}
                 color={type === 'link' ? colors.grey_text : colors.black}
+                font = {textFont ?? fontFamilies.medium}
+                fontWeight = {textFont ?? fontFamilies.medium}
+                size = {textSize}
             />
         </TouchableOpacity>
     )

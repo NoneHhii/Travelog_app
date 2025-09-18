@@ -13,4 +13,6 @@ export const colors = {
     blue_splash: "#0c7ecc",
     themeGra1: "#0099FF",
     themeGra2: "#0464B6",
+    light: "#EBEEF0",
+    light_Blue: '#b6dbf8',
 }
