@@ -24,7 +24,7 @@ import {
 } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/RootNavigator";
+import { RootStackParamList } from "../navigation/RootNavigator"; // Assuming RootNavigator exports this
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const BUTTON_SIZE = 65;
@@ -40,6 +40,7 @@ export interface Itinerary {
 export default interface travel {
   id: string;
   departurePoint: string;
+  // Sửa lại: Dùng destinationIDs thay vì destinationID nếu API trả về mảng
   destinationIDs: string[];
   images: string[];
   description: string;
@@ -60,8 +61,9 @@ export type RootStackParamList = {
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const useTravelData = () => { 
-  const [travels, setTravels] = useState<any[]>([]);
+const useTravelData = () => {
+  // Sửa lại: Sử dụng kiểu travel[] thay vì any[]
+  const [travels, setTravels] = useState<travel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -70,6 +72,7 @@ const useTravelData = () => {
       try {
         setIsLoading(true);
         const data = await getAllTravel();
+        // Cần ép kiểu nếu getAllTravel() không trả về đúng kiểu travel[]
         setTravels(data as travel[]);
         setError(null);
       } catch (err) {
@@ -100,7 +103,6 @@ const useDraggableFloatingButton = () => {
         hasMoved.current = false;
       },
       onPanResponderMove: (evt, gestureState) => {
-        // Kiểm tra nếu người dùng di chuyển đủ xa (threshold: 5px)
         if (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5) {
           hasMoved.current = true;
         }
@@ -111,7 +113,6 @@ const useDraggableFloatingButton = () => {
       onPanResponderRelease: (evt, gestureState) => {
         pan.flattenOffset();
 
-        // Nếu không di chuyển, coi như là click và navigate
         if (!hasMoved.current) {
           navigation.navigate("Chatbot");
           return;
@@ -145,7 +146,7 @@ const useDraggableFloatingButton = () => {
 
   const animatedStyle = {
     transform: [{ translateX: pan.x }, { translateY: pan.y }],
-  } as any;
+  } as any; // Tạm thời dùng 'as any' để tránh lỗi type
 
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
@@ -222,40 +223,42 @@ const MenuGrid: React.FC = () => (
       styles={styles.sectionTitle}
     />
     <View style={styles.menuRow}>
+      {/* Sửa lại title thành Tiếng Việt */}
       <MenuComponent
-        title="Flights"
+        title="Chuyến bay"
         url={require("../../assets/airplane.png")}
         bgColor="#EAF2FF"
       />
       <MenuComponent
-        title="Hotels"
+        title="Khách sạn"
         url={require("../../assets/hotel.png")}
         bgColor="#F0EAFE"
       />
       <MenuComponent
-        title="Cars"
+        title="Thuê xe"
         url={require("../../assets/car-rental.png")}
         bgColor="#E5F8F0"
       />
       <MenuComponent
-        title="All"
+        title="Hoạt động"
         url={require("../../assets/think-to-do.png")}
         bgColor="#FFF9E6"
       />
     </View>
     <View style={styles.menuRow}>
+       {/* Sửa lại title thành Tiếng Việt */}
       <MenuComponent
-        title="Tours"
+        title="Xe Bus"
         url={require("../../assets/bus-shuttle.png")}
         bgColor="#FFF0F0"
       />
       <MenuComponent
-        title="Events"
+        title="Sự kiện"
         url={require("../../assets/flight-status.png")}
         bgColor="#F0F0F0"
       />
       <MenuComponent
-        title="Cruises"
+        title="Du thuyền"
         url={require("../../assets/cruise-ship.png")}
         bgColor="#EAF8FF"
       />
@@ -410,7 +413,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: 100 }}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
         <HomeHeader onSearchPress={handleSearchPress} />
         <MenuGrid />
@@ -427,11 +430,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.white, // Nền trắng chung
   },
   scrollView: {
     flex: 1,
-    backgroundColor: colors.white,
+     backgroundColor: '#F4F7FF', // Nền xanh nhạt cho phần cuộn
   },
   centerContainer: {
     flex: 1,
@@ -446,6 +449,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    // Màu nền Gradient đã được áp dụng bởi LinearGradient
   },
   headerTopRow: {
     flexDirection: "row",
@@ -453,7 +457,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  // --- ĐÃ THÊM STYLE CHO ICON ---
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
@@ -461,7 +464,6 @@ const styles = StyleSheet.create({
   icon: {
     marginLeft: 16,
   },
-  // --- KẾT THÚC STYLE MỚI ---
   avatar: {
     width: 50,
     height: 50,
@@ -488,13 +490,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
   },
-  scanButton: {
-    padding: 5,
-  },
   // Menu Grid
   menuGridContainer: {
     marginHorizontal: 20,
-    marginTop: 25,
+    marginTop: -15, // Kéo lên để nằm đè lên phần trắng của header
     backgroundColor: colors.white,
     borderRadius: 20,
     padding: 15,
@@ -503,6 +502,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    zIndex: 10, // Đảm bảo menu nằm trên
   },
   sectionTitle: {
     marginBottom: 15,
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   // Offers
   offersContainer: {
     paddingHorizontal: 20,
-    marginTop: 15,
+    marginTop: 20, // Tăng khoảng cách với Menu
     position: "relative",
   },
   offersRow: {
@@ -558,13 +558,14 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     resizeMode: "contain",
-    top: 130,
+    top: 130, // Điều chỉnh vị trí
     left: "50%",
     zIndex: 1,
   },
   // Travel Section
   travelSectionContainer: {
     marginTop: 25,
+    paddingBottom: 20, // Thêm padding dưới cùng
   },
   sectionHeader: {
     flexDirection: "row",
@@ -580,8 +581,7 @@ const styles = StyleSheet.create({
     right: FLOATING_BUTTON_POSITION_RIGHT,
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
-    zIndex: 9999,
-    elevation: 10,
+    zIndex: 9999, // Đảm bảo nút nổi lên trên
   },
   floatingButton: {
     width: BUTTON_SIZE,
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 10,
-    shadowColor: "#6A5AE0",
+    shadowColor: "#0194F3", // Màu shadow xanh
     shadowOpacity: 0.4,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

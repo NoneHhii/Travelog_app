@@ -1,28 +1,27 @@
 import React from "react";
 import {
     Image,
-    Pressable, // Keep Pressable for buttons if preferred over TouchableOpacity
+    Pressable,
     StyleSheet,
-    Text,      // Use RN Text
+    Text,
     View,
     ScrollView,
-    SafeAreaView, // Add SafeAreaView
-    TouchableOpacity, // Use TouchableOpacity for list items
+    SafeAreaView,
+    TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import ViewOptionComponent from "../components/ViewOptionComponent"; // Assuming this component exists and is styled
-import { colors } from "../constants/colors"; // Assuming consistent color definitions
-import { Ionicons } from "@expo/vector-icons"; // Use Ionicons
+// Assuming ViewOptionComponent exists and is styled correctly
+// import ViewOptionComponent from "../components/ViewOptionComponent";
+import { colors } from "../constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
-// --- Consistent Color Palette (Blue Theme) ---
 const lightBackground = "#F4F7FF";
-const themeColor = "#0194F3";          // Main blue color
+const themeColor = "#0194F3";
 const cardBackgroundColor = colors.white;
 const primaryTextColor = "#0A2C4D";
 const secondaryTextColor = colors.grey_text;
-const priorityGradientColors = ["#007AFF", "#0052D4"]; // Example blue gradient for priority banner
+const priorityGradientColors = ["#007AFF", "#0052D4"];
 
-// --- Header Component ---
 const AccountHeader: React.FC = () => (
     <View style={styles.headerContainer}>
         <View style={styles.headerButtonPlaceholder} />
@@ -31,11 +30,10 @@ const AccountHeader: React.FC = () => (
     </View>
 );
 
-// --- Define Options Data with Ionicons ---
 const paymentOptions = [
     {
         id: "payment",
-        icon: "card-outline" as const, // Use Ionicons name
+        icon: "card-outline" as const,
         title: "Thanh toán",
         content: "Thêm hoặc quản lý thẻ đã lưu",
     },
@@ -78,18 +76,17 @@ const serviceOptions = [
     {
         id: 2,
         icon: "headset-outline" as const,
-        title: "Dịch vụ khách hàng", // Changed from "My Missions" which was duplicated
+        title: "Dịch vụ khách hàng",
         content: "Nhận trợ giúp từ Dịch vụ khách hàng của chúng tôi",
     },
     {
         id: 3,
         icon: "settings-outline" as const,
-        title: "Cài đặt", // Changed from "Reward Zone" which was duplicated
+        title: "Cài đặt",
         content: "Xem và đặt tùy chọn tài khoản của bạn",
     },
 ];
 
-// --- Option Row Component (Example - integrate with ViewOptionComponent or replace) ---
 interface OptionRowProps {
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
@@ -118,13 +115,11 @@ export const AccountScreen: React.FC = () => {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
             >
-                {/* --- Profile Card --- */}
                 <View style={styles.card}>
                     <View style={styles.profileHeader}>
                         <Image
                             style={styles.avatar}
-                            source={{ uri: 'https://xsgames.co/randomusers/avatar.php?g=pixel' }} // Example URI
-                            // source={require("../../assets/AccountPage/avatar 1.png")} // Or keep local asset
+                            source={{ uri: 'https://xsgames.co/randomusers/avatar.php?g=pixel' }}
                         />
                         <View style={styles.profileInfo}>
                             <View style={styles.profileNameRow}>
@@ -142,11 +137,10 @@ export const AccountScreen: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* --- Priority Banner Card --- */}
                 <LinearGradient
                     colors={priorityGradientColors}
                     start={{ x: 0.0, y: 0 }}
-                    end={{ x: 1.0, y: 0 }} // Horizontal gradient
+                    end={{ x: 1.0, y: 0 }}
                     style={[styles.card, styles.priorityBanner]}
                 >
                     <Text style={styles.priorityText}>
@@ -155,11 +149,9 @@ export const AccountScreen: React.FC = () => {
                     <Ionicons name="arrow-forward-circle-outline" size={24} color={colors.white} />
                 </LinearGradient>
 
-                {/* --- Payment Options Card --- */}
                 <View style={styles.card}>
                     <Text style={styles.sectionTitle}>Tùy chọn thanh toán</Text>
                     {paymentOptions.map((item, index) => (
-                         // Replace with ViewOptionComponent if its props match
                         <OptionRow
                             key={item.id}
                             icon={item.icon}
@@ -170,7 +162,6 @@ export const AccountScreen: React.FC = () => {
                     ))}
                 </View>
 
-                {/* --- Rewards Card --- */}
                 <View style={styles.card}>
                      <Text style={styles.sectionTitle}>Phần thưởng của tôi</Text>
                     {rewardsOptions.map((item, index) => (
@@ -184,7 +175,6 @@ export const AccountScreen: React.FC = () => {
                     ))}
                 </View>
 
-                 {/* --- Service Card --- */}
                 <View style={styles.card}>
                      <Text style={styles.sectionTitle}>Dịch vụ</Text>
                      {serviceOptions.map((item, index) => (
@@ -224,7 +214,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: colors.white,
         paddingHorizontal: 15,
-        paddingTop: 50, // Adjust for status bar height
+        paddingTop: 50,
         paddingBottom: 15,
         borderBottomColor: colors.light_Blue,
         borderBottomWidth: 1,
@@ -235,7 +225,7 @@ const styles = StyleSheet.create({
         color: primaryTextColor,
     },
     headerButtonPlaceholder: {
-        width: 40, // Match typical icon button width for centering
+        width: 40,
     },
     // Card General Style
     card: {
@@ -256,27 +246,27 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     avatar: {
-        width: 65, // Slightly smaller avatar
+        width: 65,
         height: 65,
-        borderRadius: 32.5, // Make it circular
+        borderRadius: 32.5,
         marginRight: 15,
     },
     profileInfo: {
-        flex: 1, // Take remaining space
+        flex: 1,
     },
     profileNameRow: {
         flexDirection: "row",
-        justifyContent: "space-between", // Push edit icon to the right
+        justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 4,
     },
     profileName: {
         fontWeight: "bold",
-        fontSize: 18, // Slightly smaller name
+        fontSize: 18,
         color: primaryTextColor,
     },
     profileDetail: {
-        fontSize: 13, // Smaller detail text
+        fontSize: 13,
         color: secondaryTextColor,
         marginBottom: 2,
     },
@@ -284,12 +274,12 @@ const styles = StyleSheet.create({
         marginTop: 10,
         paddingVertical: 10,
         borderRadius: 8,
-        borderWidth: 1, // Outline style
-        borderColor: themeColor, // Blue border
+        borderWidth: 1,
+        borderColor: themeColor,
         alignItems: "center",
     },
     profileButtonText: {
-        color: themeColor, // Blue text
+        color: themeColor,
         fontSize: 15,
         fontWeight: "600",
     },
@@ -298,13 +288,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 18, // More vertical padding
+        paddingVertical: 18,
     },
     priorityText: {
         color: colors.white,
         fontWeight: "bold",
-        fontSize: 16, // Slightly smaller text
-        flex: 1, // Allow text wrapping
+        fontSize: 16,
+        flex: 1,
         marginRight: 10,
     },
     // Section Title (within cards)
@@ -312,29 +302,29 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: primaryTextColor,
-        marginBottom: 10, // Space below title before options
+        marginBottom: 10,
     },
     // Option Row (used within cards)
     optionRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12, // Vertical spacing for each option
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: colors.light_Blue, // Light separator
+        borderBottomColor: colors.light_Blue,
     },
     optionRowLast: {
-        borderBottomWidth: 0, // No border for the last item
+        borderBottomWidth: 0,
     },
     optionIcon: {
-        marginRight: 15, // Space between icon and text
+        marginRight: 15,
     },
     optionTextContainer: {
-        flex: 1, // Take available space
-        marginRight: 10, // Space before chevron
+        flex: 1,
+        marginRight: 10,
     },
     optionTitle: {
         fontSize: 15,
-        fontWeight: '500', // Medium weight
+        fontWeight: '500',
         color: primaryTextColor,
         marginBottom: 3,
     },
@@ -342,7 +332,4 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: secondaryTextColor,
     },
-
-    // --- Remove old, unused styles ---
-    // circleBorder, container (absolute), button (old), vip, text (old generic)
 });
