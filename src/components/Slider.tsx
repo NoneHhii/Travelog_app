@@ -1,65 +1,56 @@
-import React from "react"
+import React from "react";
 import travel from "../screens/HomeScreen";
-import {View, FlatList, StyleSheet, ViewToken} from 'react-native'
-import {TravelItem} from '../components/TravelItem'
-import { useRef } from "react";
-
+import { View, FlatList, StyleSheet } from "react-native";
+import { TravelItem } from "../components/TravelItem"; // Đảm bảo import đúng
 
 interface travelProps {
-    travels: travel[],
-    sale?: number,
-    size?: number,
-    RadiusTop?: number,
-    RadiusBottom?: number,
-    handleDetail?: (travel: travel) => void,
+  travels: travel[];
+  sale?: number;
+  size?: number;
+  RadiusTop?: number;
+  RadiusBottom?: number;
+  handleDetail?: (travel: travel) => void;
 }
-
-
 
 export const Slider: React.FC<travelProps> = ({
-    travels,
-    sale,
-    size=240,
-    RadiusTop = 0,
-    RadiusBottom = 0,
-    handleDetail,
+  travels,
+  RadiusTop = 0, // Props này giờ được quản lý trong TravelItem
+  RadiusBottom = 0, // Props này giờ được quản lý trong TravelItem
+  handleDetail,
 }) => {
+  const renderItem = ({ item }: { item: travel }) => (
+    <View key={item.id} style={styles.itemContainer}>
+      <TravelItem
+        travel={item}
+        // Radius props không cần thiết nữa nếu TravelItem tự quản lý
+        handleDetail={handleDetail}
+      />
+    </View>
+  );
 
-    const renderItem = ({item}: {item: travel}) => (
-        <View
-            key={item.id}
-            style={[styles.row, {marginHorizontal: 15}]}
-        >
-            <TravelItem
-                travel={item}
-                RadiusTop={RadiusTop}
-                RadiusBottom={RadiusBottom}
-                handleDetail={handleDetail}
-            />
-        </View>
-    ) 
-
-    
-
-    return (
-        <View style={[styles.row, {marginTop: 30}]}>
-            <FlatList
-                data={travels}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                // viewabilityConfigCallbackPairs
-                
-            />
-        </View>
-    )
-}
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={travels}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        // Thêm contentContainerStyle để có padding ở 2 đầu
+        contentContainerStyle={styles.flatlistContent}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    row: {
-        // width: "100%",
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-})
+  container: {
+    marginTop: 10, // Giảm margin top
+  },
+  flatlistContent: {
+    paddingHorizontal: 12, // Padding 20 ở đầu, 12 ở giữa
+  },
+  itemContainer: {
+    marginHorizontal: 8, // Khoảng cách giữa các item
+  },
+});
