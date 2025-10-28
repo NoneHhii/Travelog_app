@@ -16,17 +16,17 @@ export const SplashScreen : React.FC = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             navigation.replace("Intro");
-        }, 3000);
+        }, 4000);
 
         return () => clearTimeout(timer);
     }, [navigation]);
 
     return (
         <View style={styles.container}>
-            <Image source={require("../../assets/logo.png")} style={{width: 120, height: 120}}></Image>
+            <Image source={require("../../assets/travelog.gif")} style={{width: 120, height: 120}}></Image>
             <TextComponent
                 text="Bắt đầu hành trình của bạn"
-                color={colors.blue_splash}
+                color={colors.white}
                 size={16} 
                 fontWeight="500"
                 
@@ -40,5 +40,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: '#45A1DE',
     }
 })

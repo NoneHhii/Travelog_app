@@ -9,21 +9,17 @@ import {
   Dimensions,
   ScrollView, // Thêm ScrollView
 } from "react-native";
-import travel, { RootStackParamList } from "./HomeScreen"; // Import RootStackParamList
+import travel from "./HomeScreen"; // Import RootStackParamList
 import { colors } from "../constants/colors";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { InforProps } from "./BookingInfor";
 import { Ionicons } from "@expo/vector-icons"; // Import icons
 import { TextComponent } from "../components/TextComponent"; // Giả sử bạn có TextComponent
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RootStackParamList } from "../navigation/RootNavigator";
 // --- Types ---
-// Sử dụng lại AppStackParamList từ TravelDetail để đồng bộ
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  BookingInfor: { props: InforProps };
-  TravelDetail: { travel: travel };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "BookingTour">;
+
+type StackProps = NativeStackScreenProps<RootStackParamList, "BookingTour">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
