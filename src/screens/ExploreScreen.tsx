@@ -104,7 +104,7 @@ export const ExploreScreen: React.FC = () => {
 
         console.log("Searching YouTube with query:", finalQuery);
 
-        const API_URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(finalQuery)}&type=video&regionCode=VN&maxResults=10&key=${YOUTUBE_API_KEY}`;
+        const API_URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(finalQuery)}&type=video&regionCode=VN&maxResults=6&key=${YOUTUBE_API_KEY}`;
 
         try {
             const response = await fetch(API_URL);
