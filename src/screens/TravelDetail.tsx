@@ -74,7 +74,8 @@ const useTravelDetails = () => {
     })();
   }, []);
 
-  const getDestination = (destinationID: string) => {
+  const getDestination = (destinationID: string | undefined): Destination | undefined => {
+    if (!destinationID) return undefined;
     return destinations.find((dest) => dest.id === destinationID);
   };
 
@@ -87,7 +88,7 @@ const useTravelDetails = () => {
 
 const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
   const { travel } = route.params;
-  
+
   const { allReviews, users, isLoading, error, getDestination, getReviewUser } =
     useTravelDetails();
 
@@ -95,10 +96,13 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
     return allReviews.filter(review => review.tourID === travel.id);
   }, [allReviews, travel.id]);
 
-  const destination = useMemo(
-    () => getDestination(travel.destinationID),
-    [getDestination, travel.destinationID]
-  );
+  const destination = useMemo(() => {
+    if (travel.destinationIDs && travel.destinationIDs.length > 0) {
+      const lastDestinationID = travel.destinationIDs[travel.destinationIDs.length - 1];
+      return getDestination(lastDestinationID);
+    }
+    return undefined;
+  }, [getDestination, travel.destinationIDs]);
 
   const handleBooking = () => {
     navigation.navigate("BookingTour", {
@@ -141,7 +145,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
         <View style={styles.contentContainer}>
           <View style={styles.section}>
             <Text style={styles.overviewTitle}>
-              {travel.title}
+              {travel.departurePoint} - {destination?.name || 'Điểm đến không xác định'}
             </Text>
             <View style={styles.infoRow}>
               <FontAwesome name="star" size={16} color="#FFA500" />
@@ -159,6 +163,10 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
+             <Text style={styles.tourTitleText}>
+               {travel.title}
+             </Text>
+
             <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
             <Text style={styles.descriptionText}>{travel.description}</Text>
           </View>
@@ -183,7 +191,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Đánh giá từ khách hàng</Text>
               <FlatList
-                data={filteredReviews} 
+                data={filteredReviews}
                 renderItem={renderReview}
                 keyExtractor={(item) => item.tourID.toString() + item.userID}
                 style={styles.reviewList}
@@ -211,7 +219,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
       >
         <Ionicons name="arrow-back" size={24} color={colors.white} />
       </TouchableOpacity>
-      
+
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Tổng giá</Text>
@@ -296,12 +304,11 @@ const styles = StyleSheet.create({
     color: "#0A2C4D",
     marginBottom: 8,
   },
-  // Style cho tên tour/mô tả tour đã được thêm lại
   tourTitleText: {
     fontSize: 16,
-    color: colors.grey_text, // Giữ màu xám
+    color: colors.grey_text,
     lineHeight: 23,
-    marginBottom: 16, // Thêm khoảng cách
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: "row",

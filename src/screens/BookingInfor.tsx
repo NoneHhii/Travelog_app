@@ -1,408 +1,508 @@
-import { StaticParamList } from "@react-navigation/native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import {
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 import React, { useCallback, useMemo, useState } from "react";
-import { Image, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-import { Text } from "react-native-gesture-handler";
+import {
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+  SafeAreaView, // Thêm
+  Text, // Dùng Text của React Native
+} from "react-native";
 import { colors } from "../constants/colors";
 import createAcronym from "../utils/acronym";
 import { Picker } from "@react-native-picker/picker";
 import DatePickerInput from "../components/DatePickerInput";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { PaymentType } from "./Payment";
+import { RootStackParamList } from "./HomeScreen"; // Giả sử InforProps ở đây
+import { Ionicons } from "@expo/vector-icons";
 
+// --- Types ---
 export interface Guest {
-    id: number,
-    birthDate: string,
-    fullName: string,
-    typeOfSeat: "Premium" | "Child" |  "Standard" ,
+  id: number;
+  birthDate: string;
+  fullName: string;
+  typeOfSeat: "Premium" | "Child" | "Standard";
 }
 
 export interface Person {
-    email: string,
-    phone: string,
-    name: string,
+  email: string;
+  phone: string;
+  name: string;
 }
 
 const seatClassOptions = [
-    { label: 'Standard', value: 'Standard' },
-    { label: 'Premium', value: 'Premium' },
+  { label: 'Standard', value: 'Standard' },
+  { label: 'Premium', value: 'Premium' },
 ];
 
 export interface Booking {
-    bookingDate: string,
-    guestDetails: Guest[],
-    numberOfGuests: number,
-    paymentInfo: {
-        method: string,
-        transactionID: string,
-    },
-    status: "confirmed" | "cancelled" | "pending",
-    totalPrice: number,
-    tourID: string,
-    travelDate: string,
+  bookingDate: string;
+  guestDetails: Guest[];
+  numberOfGuests: number;
+  paymentInfo: {
+    method: string;
+    transactionID: string;
+  };
+  status: "confirmed" | "cancelled" | "pending";
+  totalPrice: number;
+  tourID: string;
+  travelDate: string;
 }
 
-export interface InforProps {
-    tourID: string,
-    totalPrice: number,
-    AdultNum: number,
-    Child: number,
-    travelDate: string,
-    departure: string,
-    destinations: Array<string>,
+// Đồng bộ ParamList
+type AppStackParamList = RootStackParamList & {
+  BookingTour: { travel: travel; destinationName: string };
+  BookingInfor: { props: InforProps };
+  TravelDetail: { travel: travel };
+  Payment: { payment: PaymentType };
+};
+type StackProps = NativeStackScreenProps<AppStackParamList, "BookingInfor">;
+
+// --- Component Con: Header ---
+interface BookingHeaderProps {
+  onBackPress: () => void;
 }
+const BookingHeader: React.FC<BookingHeaderProps> = ({ onBackPress }) => (
+  <View style={styles.headerContainer}>
+    <TouchableOpacity onPress={onBackPress} style={styles.headerButton}>
+      <Ionicons name="arrow-back" size={24} color="#0A2C4D" />
+    </TouchableOpacity>
+    <Text style={styles.headerTitle}>Điền thông tin</Text>
+    <View style={styles.headerButton} />
+  </View>
+);
 
+// --- Component Con: Thẻ Thông Tin Chuyến Đi ---
+const TourInfoCard: React.FC<{ props: InforProps }> = ({ props }) => (
+  <View style={[styles.card, styles.tourInfoCard]}>
+    <Text style={styles.tourInfoDate}>{props.travelDate}</Text>
+    <View style={styles.routeContainer}>
+      {/* Departure */}
+      <View style={styles.routePoint}>
+        <Text style={styles.pointAcronym}>
+          {createAcronym(props.departure)}
+        </Text>
+        <Text style={styles.pointName}>{props.departure}</Text>
+      </View>
+      {/* Dashed Line */}
+      <View style={styles.dashedLine} />
+      {/* Destination */}
+      <View style={styles.routePoint}>
+        <Text style={styles.pointAcronym}>
+          {createAcronym(props.destination)}
+        </Text>
+        <Text style={styles.pointName}>{props.destination}</Text>
+      </View>
+    </View>
+    {/* Guest Info */}
+    <View style={styles.guestInfoContainer}>
+      <View style={styles.guestRow}>
+        <Ionicons name="person-outline" size={16} color={colors.grey_text} />
+        <Text style={styles.guestText}>{props.AdultNum} Người lớn</Text>
+      </View>
+      {props.Child > 0 && (
+        <View style={styles.guestRow}>
+          <Ionicons name="person-outline" size={16} color={colors.grey_text} />
+          <Text style={styles.guestText}>{props.Child} Trẻ em</Text>
+        </View>
+      )}
+    </View>
+  </View>
+);
 
-type Stack = NativeStackScreenProps<StaticParamList, 'BookingInfor'>;
+// --- Component Con: Thẻ Thông Tin Liên Hệ ---
+interface ContactInfoCardProps {
+  email: string;
+  onEmailChange: (text: string) => void;
+  name: string;
+  onNameChange: (text: string) => void;
+  phone: string;
+  onPhoneChange: (text: string) => void;
+}
+const ContactInfoCard: React.FC<ContactInfoCardProps> = (props) => (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>Thông tin liên hệ</Text>
+    <Text style={styles.cardSubtitle}>
+      Chúng tôi sẽ gửi e-ticket/voucher đến liên hệ này
+    </Text>
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Họ tên:</Text>
+      <TextInput
+        placeholder="Họ và tên của bạn"
+        style={styles.textInput}
+        value={props.name}
+        onChangeText={props.onNameChange}
+      />
+      <Text style={styles.label}>Số điện thoại:</Text>
+      <TextInput
+        placeholder="09xxxxxxxx"
+        style={styles.textInput}
+        keyboardType="phone-pad"
+        value={props.phone}
+        onChangeText={props.onPhoneChange}
+      />
+      <Text style={styles.label}>Email:</Text>
+      <TextInput
+        placeholder="example@gmail.com"
+        style={styles.textInput}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={props.email}
+        onChangeText={props.onEmailChange}
+      />
+    </View>
+  </View>
+);
 
-const BookingInfor: React.FC<Stack> = ({navigation, route}) => {
+// --- Component Con: Thẻ Thông Tin Hành Khách ---
+interface PassengerCardProps {
+  guest: Guest;
+  index: number;
+  onInputChange: (id: number, field: keyof Guest, value: string) => void;
+  isChild: boolean;
+}
+const PassengerCard: React.FC<PassengerCardProps> = ({ guest, index, onInputChange, isChild }) => (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>
+      {isChild ? `Trẻ em #${index + 1}` : `Người lớn #${index + 1}`}
+    </Text>
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Họ tên:</Text>
+      <TextInput
+        placeholder="Họ tên đầy đủ"
+        style={styles.textInput}
+        value={guest.fullName}
+        onChangeText={(text) => onInputChange(guest.id, 'fullName', text)}
+      />
+      <Text style={styles.label}>Ngày sinh:</Text>
+      <DatePickerInput
+        label="Chọn ngày sinh"
+        value={guest.birthDate}
+        onDateChange={(dateString) => onInputChange(guest.id, 'birthDate', dateString)}
+      />
+      {!isChild && (
+        <>
+          <Text style={styles.label}>Hạng ghế:</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={guest.typeOfSeat}
+              onValueChange={(itemValue) =>
+                onInputChange(guest.id, 'typeOfSeat', itemValue as 'Standard' | 'Premium')
+              }
+              style={styles.pickerStyle}
+            >
+              {seatClassOptions.map(option => (
+                <Picker.Item key={option.value} label={option.label} value={option.value} />
+              ))}
+            </Picker>
+          </View>
+        </>
+      )}
+    </View>
+  </View>
+);
 
-    const {props}: {props: InforProps} = route.params;
+// --- Component Con: Thanh Footer ---
+interface BookingBottomBarProps {
+  totalPrice: number;
+  onContinue: () => void;
+}
+const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onContinue }) => (
+  <View style={styles.bottomBar}>
+    <View style={styles.priceContainer}>
+      <Text style={styles.priceLabel}>Tổng giá:</Text>
+      <Text style={styles.priceText}>
+        {totalPrice.toLocaleString("vi-VN")} ₫
+      </Text>
+    </View>
+    <View style={styles.bookButtonContainer}>
+      <ButtonComponent
+        type="button"
+        text="Tiếp tục"
+        textColor={colors.white}
+        onPress={onContinue}
+        width={"100%"}
+        height={50}
+        backgroundColor="#6A5AE0" // Màu tím
+        borderRadius={15}
+      />
+    </View>
+  </View>
+);
 
-    const [email, setEmail] = useState("");
+// --- Component Chính: BookingInfor ---
+const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
+  const { props } = route.params;
 
-    const [passengers, setPassengers] = useState<Guest[]>(() => {
-        return Array.from({ length: props.AdultNum }, (_, index) => ({
-            id: index + 1,
-            fullName: '',
-            birthDate: '',
-            typeOfSeat: 'Standard',
-        }));
-    });
+  // State thông tin liên hệ
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
 
-    const [child, setChild] = useState<Guest[]>(() => {
-        return Array.from({ length: props.AdultNum }, (_, index) => ({
-            id: passengers.length + 1,
-            fullName: '',
-            birthDate: '',
-            typeOfSeat: 'Child',
-        }));
-    });
+  // === SỬA LỖI LOGIC: Hợp nhất state hành khách ===
+  const [allGuests, setAllGuests] = useState<Guest[]>(() => {
+    const adults = Array.from({ length: props.AdultNum }, (_, index) => ({
+      id: index + 1,
+      fullName: '',
+      birthDate: '',
+      typeOfSeat: 'Standard' as const,
+    }));
+    // SỬA: Dùng props.Child thay vì props.AdultNum
+    const children = Array.from({ length: props.Child }, (_, index) => ({
+      id: props.AdultNum + index + 1,
+      fullName: '',
+      birthDate: '',
+      typeOfSeat: 'Child' as const,
+    }));
+    return [...adults, ...children];
+  });
+  // ===============================================
 
-    const handleInputChange = useCallback((
-        id: number, 
-        field: keyof Guest, 
-        value: string
-    ) => {
-        setPassengers(prevPassengers => 
-            prevPassengers.map(passenger => 
-                passenger.id === id 
-                    ? { ...passenger, [field]: value } 
-                    : passenger 
-            )
-        );
-    }, []);
+  const handleInputChange = useCallback((
+    id: number,
+    field: keyof Guest,
+    value: string
+  ) => {
+    setAllGuests(prevGuests =>
+      prevGuests.map(guest =>
+        guest.id === id
+          ? { ...guest, [field]: value }
+          : guest
+      )
+    );
+  }, []);
 
-    const handleSubmit = () => {
-        console.log('Dữ liệu hành khách:', passengers);
-        const payment: PaymentType = {
-            infor: props,
-            guests: passengers,
-            email: email
-        }
-        navigation.navigate("Payment", {payment});
+  const handleSubmit = () => {
+    const payment: PaymentType = {
+      infor: props,
+      guests: allGuests,
+      contact: {
+        email: contactEmail,
+        name: contactName,
+        phone: contactPhone,
+      },
     };
+    navigation.navigate("Payment", { payment });
+  };
 
-    const back = () => {
-        navigation.goBack();
-    }
+  return (
+    <SafeAreaView style={styles.container}>
+      <BookingHeader onBackPress={() => navigation.goBack()} />
+      <ScrollView
+        style={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 100 }} // Thêm padding
+      >
+        <TourInfoCard props={props} />
 
-    // Render passenger input set inline to avoid remounting component on each render
-    // which can cause TextInput to lose focus (keyboard dismisses after one char).
+        <ContactInfoCard
+          email={contactEmail}
+          onEmailChange={setContactEmail}
+          name={contactName}
+          onNameChange={setContactName}
+          phone={contactPhone}
+          onPhoneChange={setContactPhone}
+        />
 
-    return (
-        <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'none' : 'none'}>
-            <View style={styles.constainer}>
-                <View style={styles.header}>
-                    <View style={styles.row}>
-                        <TouchableOpacity
-                            onPress={() => back()}
-                            style={{
-                                width: 24,
-                                height: 24,
-                            }}
-                        >
-                            <Text style={{fontWeight: 'bold', fontSize: 16, color: colors.white, lineHeight: 20}}>
-                                {"<"}
-                            </Text>
-                        </TouchableOpacity>
-                        <Text
-                            style={{
-                                flex: 1,
-                                textAlign: 'center',
-                                fontSize: 16,
-                                fontWeight: 'bold',
-                                color: colors.white,
-                            }}
-                        >
-                            Điền thông tin
-                        </Text>
-                    </View>
-                    <Text style={{textAlign: 'center', color: colors.white, marginVertical: 8}}>
-                        {props.travelDate}
-                    </Text>
-                    <View style={styles.row}>
-                        <View>
-                            <Text style={styles.point}>
-                                {createAcronym(props.departure)}
-                            </Text>
-                            <Text style={{color: colors.white, fontSize: 12}}>{props.departure}</Text>
-                        </View>
-                        <View
-                            style={{
-                                flex: 1,
-                                borderWidth: 1,
-                                borderStyle: 'dashed',
-                                marginHorizontal: 15,
-                                borderColor: colors.white,
-                            }}
-                        />
-                        <View>
-                            <Text style={styles.point}>
-                                {createAcronym(props.destination)}
-                            </Text>
-                            <Text style={{color: colors.white, fontSize: 12}}>{props.destination}</Text>
-                        </View>
-                    </View>
-                    <Text style={{textAlign: 'center', color: colors.white}}>4 giờ 30 phút</Text>
-                    <View style={{alignItems: 'center', marginVertical: 8}}>
-                        <View style={styles.row}>
-                            <Image 
-                                source={require('../../assets/primary.png')}
-                                style={{
-                                    width: 16,
-                                    height: 18,
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    color: colors.white,
-                                    marginLeft: 4,
-                                }}
-                            >
-                                {props.AdultNum} Người lớn
-                            </Text>
-                        </View>
-                        {props.Child > 0 && (
-                            <View style={[styles.row, {marginTop: 4,}]}>
-                                <Image 
-                                    source={require('../../assets/primary.png')}
-                                    style={{
-                                        width: 16,
-                                        height: 18,
-                                    }}
-                                />
-                                <Text>{props.Child} Trẻ em</Text>
-                                
-                            </View>
-                        )}
-                        
-                    </View>
-                </View>
+        {allGuests.map((guest, index) => (
+          <PassengerCard
+            key={guest.id}
+            guest={guest}
+            index={guest.typeOfSeat === 'Child' ? index - props.AdultNum : index}
+            onInputChange={handleInputChange}
+            isChild={guest.typeOfSeat === 'Child'}
+          />
+        ))}
 
-                {/* Contact */}
-                <View style={{marginTop: 20, width: "100%", alignItems: 'center'}}>
-                    <View style={{width: "90%"}}>
-                        <Text
-                            style={{
-                                fontWeight: 'bold',
+      </ScrollView>
 
-                            }}
-                        >
-                            Thông tin liên hệ (nhận vé/phiếu thanh toán)
-                        </Text>
-                        <Text
-                            style={{
-                                fontWeight: 'bold',
-                                color: colors.grey_text,
-                                fontSize: 13,
-                                marginVertical: 6,
-                            }}
-                        >
-                            Chúng tôi sẽ gửi tất cả các e-ticket/vourcher đến liên hệ này
-                        </Text>
+      <BookingBottomBar
+        totalPrice={props.totalPrice}
+        onContinue={handleSubmit}
+      />
+    </SafeAreaView>
+  );
+};
 
-                        <View 
-                            style={{
-                                marginVertical: 10,
-                                borderWidth: 1,
-                                borderColor: colors.light_Blue,
-                                padding: 8,
-                                borderRadius: 8,
-                            }}
-                        >
-                            <Text>Tên:</Text>
-                            <TextInput
-                                placeholder="Họ tên"
-                                style={{
-                                    backgroundColor: '#F8F9FB',
-                                    borderRadius: 8
-                                }}
-                            />
-                            <Text>Số điện thoại:</Text>
-                            <TextInput
-                                placeholder="xxxxxxxxx"
-                                style={{
-                                    backgroundColor: '#F8F9FB',
-                                    borderRadius: 8
-                                }}
-                            />
-                            <Text>Email:</Text>
-                            <TextInput
-                                placeholder="example@gmail.com"
-                                style={{
-                                    backgroundColor: '#F8F9FB',
-                                    borderRadius: 8
-                                }}
-                                value={email}
-                                onChangeText={setEmail}
-                            />
-                        </View>
-                    </View>
-
-                    <Text style={{
-                        textAlign: 'left', 
-                        width: "90%",
-                        marginVertical: 10,
-                        fontWeight: 'bold'
-                    }}>
-                        Thông tin khách hành:
-                    </Text>
-
-                    {/* Infor Member */}
-                    <View style={{width: "90%"}}>
-                        {passengers.map((passenger, index) => (
-                            <View style={styles.passengerContainer} key={passenger.id.toString()}>
-                                <Text style={styles.passengerHeader}>Hành khách #{index + 1}</Text>
-
-                                {/* Tên */}
-                                <Text style={styles.label}>Tên:</Text>
-                                <TextInput
-                                    placeholder="Họ tên"
-                                    value={passenger.fullName}
-                                    onChangeText={(text) => handleInputChange(passenger.id, 'fullName', text)}
-                                    style={styles.textInput}
-                                />
-
-                                <Text style={styles.label}>Ngày sinh:</Text>
-                                <DatePickerInput
-                                    label="Ngày sinh"
-                                    value={passenger.birthDate}
-                                    onDateChange={(dateString) => handleInputChange(passenger.id, 'birthDate', dateString)}
-                                />
-
-                                <Text style={styles.label}>Hạng ghế:</Text>
-                                <View style={styles.pickerContainer}>
-                                    <Picker
-                                        selectedValue={passenger.typeOfSeat}
-                                        onValueChange={(itemValue) => 
-                                            handleInputChange(passenger.id, 'typeOfSeat', itemValue as 'Standard' | 'Premium')
-                                        }
-                                        style={styles.pickerStyle} 
-                                    >
-                                        {seatClassOptions.map(option => (
-                                            <Picker.Item 
-                                                key={option.value} 
-                                                label={option.label} 
-                                                value={option.value} 
-                                            />
-                                        ))}
-                                    </Picker>
-                                </View>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
-                <ButtonComponent
-                    text="Tiếp tục"
-                    type="button"
-                    onPress={() => handleSubmit()}
-                    width={"90%"}
-                    borderRadius={20}
-                />
-            </View>
-        </ScrollView>
-    )
-}
-
+// --- StyleSheet ---
 const styles = StyleSheet.create({
-    constainer: {
-        flex: 1,
-        backgroundColor: colors.white,
-        position: 'relative'
-    },
-
-    header: {
-        width: '100%',
-        backgroundColor: "#7319FF",
-        paddingHorizontal: 10,
-        paddingVertical: 12,
-        borderBottomColor: colors.light,
-        borderBottomWidth: 1,
-        borderBottomLeftRadius: "20%",
-        borderBottomRightRadius: "20%"
-    },
-
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-
-    point: {
-        color: colors.white,
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-
-    passengerContainer: {
-        marginBottom: 20,
-        padding: 15,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#eee',
-        backgroundColor: '#f9f9f9',
-    },
-    passengerHeader: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#333',
-    },
-    label: {
-        fontSize: 14,
-        marginTop: 10,
-        marginBottom: 5,
-        fontWeight: '500',
-        color: '#555',
-    },
-    textInput: {
-        height: 40,
-        paddingHorizontal: 12,
-        backgroundColor: '#F8F9FB', 
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
-    },
-    debugText: {
-        marginTop: 20,
-        fontSize: 12,
-        color: '#888',
-    },
-
-    pickerContainer: {
-        backgroundColor: '#F8F9FB',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        overflow: 'hidden', 
-        height: 40,
-        justifyContent: 'center', 
-    },
-    pickerStyle: {
-        height: 60,
-        width: '100%',
-    }
-})
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F7FF', // Nền xanh nhạt
+  },
+  scrollView: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor: colors.white,
+    paddingHorizontal: 15,
+    paddingTop: 50,
+    paddingBottom: 15,
+    borderBottomColor: colors.light_Blue,
+    borderBottomWidth: 1,
+  },
+  headerButton: {
+    width: 40,
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0A2C4D',
+  },
+  card: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 15,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  // Thẻ thông tin chuyến đi
+  tourInfoCard: {
+    backgroundColor: "#0A2C4D", // Nền xanh đậm
+  },
+  tourInfoDate: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  routeContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  routePoint: {
+    alignItems: 'center',
+    flex: 0.3,
+  },
+  pointAcronym: {
+    color: colors.white,
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  pointName: {
+    color: colors.white,
+    fontSize: 13,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  dashedLine: {
+    flex: 0.4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.white,
+    borderStyle: 'dashed',
+    marginTop: 15,
+  },
+  guestInfoContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.2)",
+    paddingTop: 15,
+    alignItems: 'center',
+  },
+  guestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  guestText: {
+    color: colors.white,
+    fontSize: 15,
+    marginLeft: 8,
+  },
+  // Thẻ chung
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0A2C4D',
+    marginBottom: 5,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: colors.grey_text,
+    marginBottom: 15,
+  },
+  inputGroup: {
+    width: '100%',
+  },
+  label: {
+    fontSize: 15,
+    marginTop: 10,
+    marginBottom: 8,
+    fontWeight: '500',
+    color: '#333',
+  },
+  textInput: {
+    height: 45,
+    paddingHorizontal: 12,
+    backgroundColor: '#F8F9FB',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    fontSize: 15,
+  },
+  pickerContainer: {
+    backgroundColor: '#F8F9FB',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    overflow: 'hidden',
+    height: 45,
+    justifyContent: 'center',
+  },
+  pickerStyle: {
+    height: 45,
+    width: '100%',
+  },
+  // Footer
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.light_Blue,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    paddingBottom: 20,
+  },
+  priceContainer: {
+    flex: 0.5,
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: colors.grey_text,
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FF7A2F',
+  },
+  bookButtonContainer: {
+    flex: 0.45,
+  },
+});
 
 export default BookingInfor;
