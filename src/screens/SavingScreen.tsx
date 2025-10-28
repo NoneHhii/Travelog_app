@@ -28,17 +28,14 @@ const cardBackgroundColor = colors.white;
 const primaryTextColor = "#0A2C4D";
 const secondaryTextColor = colors.grey_text;
 const linkColor = themeColor;
-// ... (các màu khác giữ nguyên) ...
 const previewBox1Color = '#D6EEFF';
 const previewBox2Color = '#EBF8FF';
 const previewBox3Color = '#F5FAFF';
 const collectionIconBackgroundColor = previewBox1Color;
 const collectionIconColor = themeColor;
 
-// --- Định nghĩa kiểu Navigation ---
 type SavingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// --- Header Component (Giữ nguyên) ---
 const SavingHeader: React.FC = () => (
   <View style={styles.headerContainer}>
     <View style={styles.headerButtonPlaceholder} />
@@ -47,7 +44,6 @@ const SavingHeader: React.FC = () => (
   </View>
 );
 
-// --- Custom Hook: Lấy dữ liệu Saved Travels (Giữ nguyên) ---
 const useSavedTravels = () => {
     const [savedTravels, setSavedTravels] = useState<travel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -84,8 +80,6 @@ export const SavingScreen: React.FC = () => {
         [navigation]
     );
 
-    // --- Component Con: Phần hiển thị Saved Travels List (Có thể bỏ nếu chỉ dùng Slider ngang) ---
-    // const renderSavedTravelsList = () => { ... }; // Có thể xóa nếu không cần list dọc nữa
 
     return (
         <SafeAreaView style={styles.screenContainer}>
@@ -94,9 +88,7 @@ export const SavingScreen: React.FC = () => {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
             >
-                {/* --- Card "Xem tất cả sản phẩm đã lưu" (Giữ nguyên) --- */}
                 <TouchableOpacity style={styles.cardLink} activeOpacity={0.8}>
-                   {/* ... nội dung card ... */}
                    <View style={styles.cardContentLeft}>
                         <Text style={styles.cardLinkText}>
                             Xem tất cả sản phẩm đã lưu
@@ -112,7 +104,6 @@ export const SavingScreen: React.FC = () => {
                     </View>
                 </TouchableOpacity>
 
-                {/* --- Card "Hãy sắp xếp các sản phẩm đã lưu!" (Giữ nguyên) --- */}
                 <View style={styles.card}>
                    {/* ... nội dung card ... */}
                    <View style={styles.collectionHeader}>
@@ -133,34 +124,29 @@ export const SavingScreen: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* --- Card "Những điểm tham quan không thể bỏ qua ✨" (ĐÃ SỬA) --- */}
                 <View style={styles.card}>
                     <TouchableOpacity style={styles.attractionHeader} activeOpacity={0.7}>
                         <Text style={styles.attractionTitle}>
                             Những điểm tham quan không thể bỏ qua ✨
                         </Text>
-                        {/* Có thể thay bằng "Xem tất cả >" nếu muốn */}
                         <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
                     </TouchableOpacity>
 
-                    {/* --- THÊM SLIDER NGANG VÀO ĐÂY --- */}
                     {isLoading ? (
                         <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }}/>
                     ) : error ? (
                          <Text style={[styles.errorText, {marginTop: 10}]}>Lỗi tải gợi ý.</Text>
                     ) : savedTravels.length > 0 ? (
                         <Slider
-                            travels={savedTravels} // Dùng dữ liệu đã fetch
+                            travels={savedTravels} 
                             handleDetail={handleDetail}
-                            RadiusTop={16} // Giữ bo góc giống Home
+                            RadiusTop={16} 
                             RadiusBottom={16}
-                            // Bỏ marginTop của Slider nếu style card đã có padding
-                            // Hoặc thêm style riêng cho Slider trong card này nếu cần
+
                         />
                     ) : (
                          <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
                     )}
-                    {/* --- KẾT THÚC SLIDER --- */}
 
                 </View>
 
@@ -328,6 +314,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 10,
      }
-    // Bỏ sectionTitle nếu không dùng cho list dọc nữa
-    // sectionTitle: { ... },
+
 });

@@ -17,6 +17,7 @@ export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
   Intro: undefined;
+  Explore: undefined;
   Main: undefined;
   Search: undefined;
   TravelDetail: { travel: travel };

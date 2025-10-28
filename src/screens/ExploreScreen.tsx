@@ -89,7 +89,7 @@ export const ExploreScreen: React.FC = () => {
     const [videos, setVideos] = useState<YoutubeVideo[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState("du lịch vịnh hạ long");
+    const [searchTerm, setSearchTerm] = useState("");
     const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
     const [isPlayerReady, setIsPlayerReady] = useState(false);
     const playerRef = useRef<any>(null);

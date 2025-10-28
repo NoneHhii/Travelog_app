@@ -83,8 +83,6 @@ export const BottomTabs: React.FC = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -94,7 +92,7 @@ export const BottomTabs: React.FC = () => {
       />
       <Tab.Screen
         name="explore"
-        component={HomeScreen}
+        component={ExploreScreen}
         options={{
           tabBarLabel: "Khám phá",
         }}
