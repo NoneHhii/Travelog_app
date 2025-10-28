@@ -63,7 +63,7 @@ const useTravelData = () => {
       try {
         setIsLoading(true);
         const data = await getAllTravel();
-        setTravels(data);
+        setTravels(data as travel[]);
         setError(null);
       } catch (err) {
         setError(err as Error);
@@ -92,11 +92,19 @@ const useDraggableFloatingButton = () => {
         });
         hasMoved.current = false;
       },
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
-        useNativeDriver: false,
-      }),
+      onPanResponderMove: (evt, gestureState) => {
+        // Kiểm tra nếu người dùng di chuyển đủ xa (threshold: 5px)
+        if (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5) {
+          hasMoved.current = true;
+        }
+        Animated.event([null, { dx: pan.x, dy: pan.y }], {
+          useNativeDriver: false,
+        })(evt, gestureState);
+      },
       onPanResponderRelease: (evt, gestureState) => {
         pan.flattenOffset();
+
+        // Nếu không di chuyển, coi như là click và navigate
         if (!hasMoved.current) {
           navigation.navigate("Chatbot");
           return;
@@ -106,14 +114,9 @@ const useDraggableFloatingButton = () => {
         const currentY = (pan.y as any)._value;
 
         const containerStartX =
-          SCREEN_WIDTH -
-          FLOATING_BUTTON_POSITION_RIGHT -
-          BUTTON_SIZE;
+          SCREEN_WIDTH - FLOATING_BUTTON_POSITION_RIGHT - BUTTON_SIZE;
         const containerStartY =
-          SCREEN_HEIGHT -
-          FLOATING_BUTTON_POSITION_BOTTOM -
-          BUTTON_SIZE -
-          80;
+          SCREEN_HEIGHT - FLOATING_BUTTON_POSITION_BOTTOM - BUTTON_SIZE - 80;
 
         const minX = -containerStartX;
         const maxX = SCREEN_WIDTH - containerStartX - BUTTON_SIZE;
@@ -135,7 +138,7 @@ const useDraggableFloatingButton = () => {
 
   const animatedStyle = {
     transform: [{ translateX: pan.x }, { translateY: pan.y }],
-  };
+  } as any;
 
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
@@ -262,21 +265,44 @@ const OffersSection: React.FC = () => (
         style={styles.offerCardLeft}
         imageStyle={{ borderRadius: 20 }}
       >
-        <TextComponent text="GIẢM 30%" size={24} fontWeight="bold" color={colors.white} />
-        <TextComponent text="Cho chuyến đi đầu tiên!" size={14} color={colors.white} />
+        <TextComponent
+          text="GIẢM 30%"
+          size={24}
+          fontWeight="bold"
+          color={colors.white}
+        />
+        <TextComponent
+          text="Cho chuyến đi đầu tiên!"
+          size={14}
+          color={colors.white}
+        />
       </ImageBackground>
 
       <LinearGradient
         colors={["#FFD67C", "#FFAE34"]}
         style={styles.offerCardRight}
       >
-        <Image source={require("../../assets/Offer.png")} style={styles.offerIcon} />
-        <TextComponent text="Nhận voucher" size={16} fontWeight="bold" color="#4D3800" />
+        <Image
+          source={require("../../assets/Offer.png")}
+          style={styles.offerIcon}
+        />
+        <TextComponent
+          text="Nhận voucher"
+          size={16}
+          fontWeight="bold"
+          color="#4D3800"
+        />
         <TextComponent text="lên đến 200k" size={13} color="#4D3800" />
       </LinearGradient>
 
-      <Image source={require("../../assets/dollar.png")} style={styles.dollarIcon1} />
-      <Image source={require("../../assets/dollar.png")} style={styles.dollarIcon2} />
+      <Image
+        source={require("../../assets/dollar.png")}
+        style={styles.dollarIcon1}
+      />
+      <Image
+        source={require("../../assets/dollar.png")}
+        style={styles.dollarIcon2}
+      />
     </View>
   </View>
 );
@@ -285,7 +311,10 @@ interface TravelSectionProps {
   travels: travel[];
   onPressItem: (item: travel) => void;
 }
-const TravelSection: React.FC<TravelSectionProps> = ({ travels, onPressItem }) => (
+const TravelSection: React.FC<TravelSectionProps> = ({
+  travels,
+  onPressItem,
+}) => (
   <View style={styles.travelSectionContainer}>
     <View style={styles.sectionHeader}>
       <TextComponent
@@ -295,7 +324,11 @@ const TravelSection: React.FC<TravelSectionProps> = ({ travels, onPressItem }) =
         color="#0A2C4D"
       />
       <TouchableOpacity>
-        <TextComponent text="Xem tất cả >" size={14} color={colors.blue_splash} />
+        <TextComponent
+          text="Xem tất cả >"
+          size={14}
+          color={colors.blue_splash}
+        />
       </TouchableOpacity>
     </View>
     <Slider
@@ -317,7 +350,11 @@ const DraggableChatbotButton: React.FC = () => {
           colors={["#90cff9ff", "#0194F3"]}
           style={styles.floatingButton}
         >
-          <MaterialCommunityIcons name="robot-outline" size={32} color={colors.white} />
+          <MaterialCommunityIcons
+            name="robot-outline"
+            size={32}
+            color={colors.white}
+          />
         </LinearGradient>
       </Animated.View>
     </View>
@@ -355,6 +392,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: 100 }}
+        nestedScrollEnabled={true}
       >
         <HomeHeader />
         <MenuGrid />
@@ -524,7 +562,8 @@ const styles = StyleSheet.create({
     right: FLOATING_BUTTON_POSITION_RIGHT,
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
-    zIndex: 999,
+    zIndex: 9999,
+    elevation: 10,
   },
   floatingButton: {
     width: BUTTON_SIZE,

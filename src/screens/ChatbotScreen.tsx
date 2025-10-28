@@ -95,7 +95,6 @@ export const ChatbotScreen: React.FC = () => {
           ...(doc.data() as Omit<Tour, "id">),
         }));
 
-        // ✅ Biến toàn bộ data thành text dễ đọc
         const tourSummary = data
           .map((tour) => {
             const days = tour.duration?.days || 0;
@@ -117,7 +116,6 @@ export const ChatbotScreen: React.FC = () => {
                     `;
           })
           .join("\n\n");
-        // console.log(tourSummary);
         setChatHistory((prev) => [
           ...prev,
           {

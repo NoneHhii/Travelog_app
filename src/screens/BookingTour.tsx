@@ -1,6 +1,4 @@
-import {
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
@@ -9,7 +7,6 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView, // Thêm SafeAreaView
   ScrollView, // Thêm ScrollView
 } from "react-native";
 import travel, { RootStackParamList } from "./HomeScreen"; // Import RootStackParamList
@@ -18,7 +15,7 @@ import { ButtonComponent } from "../components/ButtonComponent";
 import { InforProps } from "./BookingInfor";
 import { Ionicons } from "@expo/vector-icons"; // Import icons
 import { TextComponent } from "../components/TextComponent"; // Giả sử bạn có TextComponent
-
+import { SafeAreaView } from "react-native-safe-area-context";
 // --- Types ---
 // Sử dụng lại AppStackParamList từ TravelDetail để đồng bộ
 type AppStackParamList = RootStackParamList & {
@@ -50,9 +47,13 @@ interface DateSelectorProps {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
 }
-const DateSelector: React.FC<DateSelectorProps> = ({ dates, selectedDate, onSelectDate }) => {
+const DateSelector: React.FC<DateSelectorProps> = ({
+  dates,
+  selectedDate,
+  onSelectDate,
+}) => {
   const formatDate = (date: Date): string => {
-    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
     return `${days[date.getDay()]}\n${date.getDate()}/${date.getMonth() + 1}`;
   };
 
@@ -60,16 +61,10 @@ const DateSelector: React.FC<DateSelectorProps> = ({ dates, selectedDate, onSele
     const isSelected = item.toDateString() === selectedDate.toDateString();
     return (
       <TouchableOpacity
-        style={[
-          styles.dateButton,
-          isSelected && styles.selectedDateButton,
-        ]}
+        style={[styles.dateButton, isSelected && styles.selectedDateButton]}
         onPress={() => onSelectDate(item)}
       >
-        <Text style={[
-          styles.dateText,
-          isSelected && styles.selectedDateText
-        ]}>
+        <Text style={[styles.dateText, isSelected && styles.selectedDateText]}>
           {formatDate(item)}
         </Text>
       </TouchableOpacity>
@@ -98,11 +93,19 @@ interface CounterRowProps {
   onIncrease: () => void;
   disabledDecrease: boolean;
 }
-const CounterRow: React.FC<CounterRowProps> = ({ label, price, description, count, onDecrease, onIncrease, disabledDecrease }) => (
+const CounterRow: React.FC<CounterRowProps> = ({
+  label,
+  price,
+  description,
+  count,
+  onDecrease,
+  onIncrease,
+  disabledDecrease,
+}) => (
   <View style={styles.counterRow}>
     <View style={styles.textContainer}>
       <Text style={styles.counterLabel}>{label}</Text>
-      <Text style={styles.txtPrice}>{price.toLocaleString('vi-VN')} ₫</Text>
+      <Text style={styles.txtPrice}>{price.toLocaleString("vi-VN")} ₫</Text>
       <Text style={styles.descriptionText}>{description}</Text>
     </View>
     <View style={styles.counterControls}>
@@ -111,13 +114,14 @@ const CounterRow: React.FC<CounterRowProps> = ({ label, price, description, coun
         onPress={onDecrease}
         disabled={disabledDecrease}
       >
-        <Ionicons name="remove" size={18} color={disabledDecrease ? colors.grey_text : "#6A5AE0"} />
+        <Ionicons
+          name="remove"
+          size={18}
+          color={disabledDecrease ? colors.grey_text : "#6A5AE0"}
+        />
       </TouchableOpacity>
       <Text style={styles.countText}>{count}</Text>
-      <TouchableOpacity
-        style={styles.btnQuan}
-        onPress={onIncrease}
-      >
+      <TouchableOpacity style={styles.btnQuan} onPress={onIncrease}>
         <Ionicons name="add" size={18} color="#6A5AE0" />
       </TouchableOpacity>
     </View>
@@ -130,14 +134,22 @@ const PassengerSelector: React.FC<{
   setSelectedAdults: (val: number) => void;
   selectedChildren: number;
   setSelectedChildren: (val: number) => void;
-}> = ({ travelPrice, selectedAdults, setSelectedAdults, selectedChildren, setSelectedChildren }) => (
+}> = ({
+  travelPrice,
+  selectedAdults,
+  setSelectedAdults,
+  selectedChildren,
+  setSelectedChildren,
+}) => (
   <View style={styles.card}>
     <CounterRow
       label="Người lớn"
       price={travelPrice}
       description="140cm trở lên"
       count={selectedAdults}
-      onDecrease={() => setSelectedAdults(selectedAdults > 1 ? selectedAdults - 1 : 1)}
+      onDecrease={() =>
+        setSelectedAdults(selectedAdults > 1 ? selectedAdults - 1 : 1)
+      }
       onIncrease={() => setSelectedAdults(selectedAdults + 1)}
       disabledDecrease={selectedAdults === 1}
     />
@@ -147,7 +159,9 @@ const PassengerSelector: React.FC<{
       price={travelPrice * 0.3} // 30%
       description="100 - 139cm"
       count={selectedChildren}
-      onDecrease={() => setSelectedChildren(selectedChildren > 0 ? selectedChildren - 1 : 0)}
+      onDecrease={() =>
+        setSelectedChildren(selectedChildren > 0 ? selectedChildren - 1 : 0)
+      }
       onIncrease={() => setSelectedChildren(selectedChildren + 1)}
       disabledDecrease={selectedChildren === 0}
     />
@@ -159,7 +173,10 @@ interface BookingBottomBarProps {
   totalPrice: number;
   onBookNow: () => void;
 }
-const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onBookNow }) => (
+const BookingBottomBar: React.FC<BookingBottomBarProps> = ({
+  totalPrice,
+  onBookNow,
+}) => (
   <View style={styles.bottomBar}>
     <View style={styles.priceContainer}>
       <Text style={styles.priceLabel}>Tổng giá:</Text>
@@ -182,7 +199,6 @@ const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onBookN
     </View>
   </View>
 );
-
 
 // --- Component Chính: BookingTour ---
 const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
@@ -207,12 +223,26 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
   }, []);
 
   const totalPrice = useCallback(() => {
-    return travel.price * selectedAdults + (travel.price * 0.3) * selectedChildren;
+    return (
+      travel.price * selectedAdults + travel.price * 0.3 * selectedChildren
+    );
   }, [travel.price, selectedAdults, selectedChildren]);
 
   const handleInfor = useCallback(() => {
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    const dateTravel = `${days[selectedDate.getDay()]} ${selectedDate.getDate()} tháng ${selectedDate.getMonth() + 1} ${selectedDate.getFullYear()}`;
+    const days = [
+      "Chủ nhật",
+      "Thứ 2",
+      "Thứ 3",
+      "Thứ 4",
+      "Thứ 5",
+      "Thứ 6",
+      "Thứ 7",
+    ];
+    const dateTravel = `${
+      days[selectedDate.getDay()]
+    } ${selectedDate.getDate()} tháng ${
+      selectedDate.getMonth() + 1
+    } ${selectedDate.getFullYear()}`;
 
     const props: InforProps = {
       tourID: travel.id,
@@ -225,15 +255,21 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
     };
 
     navigation.navigate("BookingInfor", { props });
-  }, [navigation, travel, destinationName, selectedDate, selectedAdults, selectedChildren, totalPrice]);
+  }, [
+    navigation,
+    travel,
+    destinationName,
+    selectedDate,
+    selectedAdults,
+    selectedChildren,
+    totalPrice,
+  ]);
 
   return (
     <SafeAreaView style={styles.container}>
       <BookingHeader onBackPress={() => navigation.goBack()} />
       <ScrollView style={styles.scrollView}>
-        <Text style={styles.tourTitle}>
-          Vé {travel.title}
-        </Text>
+        <Text style={styles.tourTitle}>Vé {travel.title}</Text>
 
         <DateSelector
           dates={dates}
@@ -249,11 +285,8 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
           setSelectedChildren={setSelectedChildren}
         />
       </ScrollView>
-      
-      <BookingBottomBar
-        totalPrice={totalPrice()}
-        onBookNow={handleInfor}
-      />
+
+      <BookingBottomBar totalPrice={totalPrice()} onBookNow={handleInfor} />
     </SafeAreaView>
   );
 };
@@ -262,16 +295,16 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FF', // Màu nền nhạt
+    backgroundColor: "#F4F7FF", // Màu nền nhạt
   },
   scrollView: {
     flex: 1,
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
     backgroundColor: colors.white,
     paddingHorizontal: 15,
     paddingTop: 50, // An toàn cho status bar
@@ -281,18 +314,18 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     width: 40, // Đảm bảo đủ không gian
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0A2C4D',
+    fontWeight: "bold",
+    color: "#0A2C4D",
   },
   tourTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#0A2C4D',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#0A2C4D",
+    textAlign: "center",
     marginVertical: 20,
     paddingHorizontal: 20,
   },
@@ -303,8 +336,8 @@ const styles = StyleSheet.create({
   dateButton: {
     width: 65,
     height: 75,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginHorizontal: 5,
     borderRadius: 12, // Bo góc
     backgroundColor: colors.white,
@@ -315,18 +348,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   selectedDateButton: {
-    backgroundColor: '#0194F3', // Màu tím
+    backgroundColor: "#0194F3", // Màu tím
     elevation: 4,
   },
   dateText: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.light_black,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   selectedDateText: {
     color: colors.white,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   card: {
     marginHorizontal: 20,
@@ -340,9 +373,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   counterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 15,
   },
   counterDivider: {
@@ -356,13 +389,13 @@ const styles = StyleSheet.create({
   },
   counterLabel: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#0A2C4D',
+    fontWeight: "600",
+    color: "#0A2C4D",
   },
   txtPrice: {
     marginVertical: 2,
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.red,
   },
   descriptionText: {
@@ -370,33 +403,33 @@ const styles = StyleSheet.create({
     color: colors.grey_text,
   },
   counterControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   btnQuan: {
     width: 30, // Tăng kích thước
     height: 30,
-    backgroundColor: '#EAF2FF', // Màu xanh nhạt
+    backgroundColor: "#EAF2FF", // Màu xanh nhạt
     borderRadius: 15, // Fix lỗi "50%"
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   btnQuanDisabled: {
     backgroundColor: colors.light, // Màu xám nhạt
   },
   countText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#0A2C4D',
+    fontWeight: "bold",
+    color: "#0A2C4D",
     marginHorizontal: 15,
     width: 25, // Đảm bảo không bị nhảy layout
-    textAlign: 'center',
+    textAlign: "center",
   },
   bottomBar: {
     // Copy style từ TravelDetail
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
     backgroundColor: colors.white,
@@ -418,12 +451,12 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FF7A2F',
+    fontWeight: "bold",
+    color: "#FF7A2F",
   },
   priceSubLabel: {
     color: colors.grey_text,
-    fontWeight: '500',
+    fontWeight: "500",
     fontSize: 12,
   },
   bookButtonContainer: {
