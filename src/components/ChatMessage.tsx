@@ -1,6 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ChatbotIcon from "./ChatbotIcon";
+import { colors } from "../constants/colors";
 
 interface ChatMessageProps {
   chat: {
@@ -25,9 +28,16 @@ export default function ChatMessage({ chat }: ChatMessageProps) {
     >
       {isBot && (
         <View style={styles.iconContainer}>
-          <View style={styles.iconCircle}>
-            <ChatbotIcon width={20} height={20} color="#fff" />
-          </View>
+          <LinearGradient
+            colors={["#90cff9ff", "#0194F3"]}
+            style={styles.iconCircle}
+          >
+            <MaterialCommunityIcons
+              name="robot-outline"
+              size={18}
+              color={colors.white}
+            />
+          </LinearGradient>
         </View>
       )}
       <View
@@ -49,9 +59,16 @@ export default function ChatMessage({ chat }: ChatMessageProps) {
       </View>
       {!isBot && (
         <View style={styles.iconContainer}>
-          <View style={styles.userIconCircle}>
-            <Text style={styles.userIconText}>Bạn</Text>
-          </View>
+          <LinearGradient
+            colors={["#4CD964", "#34C759"]}
+            style={styles.userIconCircle}
+          >
+            <MaterialCommunityIcons
+              name="account"
+              size={18}
+              color={colors.white}
+            />
+          </LinearGradient>
         </View>
       )}
     </View>
@@ -77,30 +94,28 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#007AFF",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#007AFF",
+    shadowColor: "#0194F3",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   userIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#34C759",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-  },
-  userIconText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "600",
+    shadowColor: "#34C759",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   messageContainer: {
     borderRadius: 18,
@@ -108,20 +123,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   botMessage: {
-    backgroundColor: "#E5E5EA",
+    backgroundColor: "#F0F4F8",
     borderBottomLeftRadius: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#E8ECF0",
   },
   userMessage: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#0194F3",
     borderBottomRightRadius: 4,
-    shadowColor: "#007AFF",
+    shadowColor: "#0194F3",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
   },
@@ -132,13 +149,14 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   botText: {
-    color: "#1C1C1E",
+    color: "#0A2C4D",
   },
   userText: {
     color: "#FFFFFF",
+    fontWeight: "400",
   },
   errorText: {
     color: "#FF3B30",

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,10 @@ import { TextComponent } from "../components/TextComponent";
 import { TravelItemGrid } from "../components/TravelItemGrid";
 import { getAllTravel } from "../api/apiClient";
 import travel from "./HomeScreen";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 // Import RootStackParamList từ RootNavigator để type safety
 type RootStackParamList = {
@@ -62,6 +66,7 @@ const useSearchData = () => {
 
 export const SearchScreen: React.FC = () => {
   const navigation = useNavigation<SearchScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(false);
@@ -178,8 +183,16 @@ export const SearchScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#E0F7FF", "#FFFFFF"]} style={styles.header}>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#E0F7FF"
+        translucent
+      />
+      <LinearGradient
+        colors={["#E0F7FF", "#FFFFFF"]}
+        style={[styles.header, { paddingTop: insets.top + 10 }]}
+      >
         {/* Header với back button và title */}
         <View style={styles.headerTop}>
           <TouchableOpacity
@@ -462,7 +475,8 @@ export const SearchScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+      <SafeAreaView style={styles.safeAreaBottom} edges={["bottom"]} />
+    </View>
   );
 };
 
@@ -471,8 +485,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  safeAreaBottom: {
+    flex: 0,
+    backgroundColor: "transparent",
+  },
   header: {
-    paddingTop: Platform.OS === "ios" ? 0 : 20,
     paddingBottom: 15,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 25,
