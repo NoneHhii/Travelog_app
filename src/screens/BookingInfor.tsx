@@ -229,7 +229,7 @@ const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onConti
         onPress={onContinue}
         width={"100%"}
         height={50}
-        backgroundColor="#6A5AE0" // Màu tím
+        backgroundColor="#0194F3" // Màu tím
         borderRadius={15}
       />
     </View>
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pickerStyle: {
-    height: 45,
+    height: 55,
     width: '100%',
   },
   // Footer

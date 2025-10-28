@@ -84,7 +84,7 @@ export const BottomTabs: React.FC = () => {
         name="Bookings"
         component={BookingScreen}
         options={{
-          header: () => <ToolBarComponent bill={true} />,
+          header: () => null,
         }}
       />
       <Tab.Screen name="Save" component={SavingScreen} />

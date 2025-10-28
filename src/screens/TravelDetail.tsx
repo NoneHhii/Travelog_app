@@ -98,8 +98,8 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
 
   const destination = useMemo(() => {
     if (travel.destinationIDs && travel.destinationIDs.length > 0) {
-      const lastDestinationID = travel.destinationIDs[travel.destinationIDs.length - 1];
-      return getDestination(lastDestinationID);
+      const firstDestinationID = travel.destinationIDs[0];
+      return getDestination(firstDestinationID);
     }
     return undefined;
   }, [getDestination, travel.destinationIDs]);
@@ -145,7 +145,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
         <View style={styles.contentContainer}>
           <View style={styles.section}>
             <Text style={styles.overviewTitle}>
-              {travel.departurePoint} - {destination?.name || 'Điểm đến không xác định'}
+              {travel.title}
             </Text>
             <View style={styles.infoRow}>
               <FontAwesome name="star" size={16} color="#FFA500" />
@@ -163,10 +163,6 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
-             <Text style={styles.tourTitleText}>
-               {travel.title}
-             </Text>
-
             <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
             <Text style={styles.descriptionText}>{travel.description}</Text>
           </View>
