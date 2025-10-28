@@ -1,295 +1,436 @@
-import { StaticParamList } from "@react-navigation/native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Dimensions } from "react-native";
-import travel from "./HomeScreen";
+import {
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Dimensions,
+  SafeAreaView, // Thêm SafeAreaView
+  ScrollView, // Thêm ScrollView
+} from "react-native";
+import travel, { RootStackParamList } from "./HomeScreen"; // Import RootStackParamList
 import { colors } from "../constants/colors";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { InforProps } from "./BookingInfor";
+import { Ionicons } from "@expo/vector-icons"; // Import icons
+import { TextComponent } from "../components/TextComponent"; // Giả sử bạn có TextComponent
 
-type Stack = NativeStackScreenProps<StaticParamList, 'BookingTour'>;
+// --- Types ---
+// Sử dụng lại AppStackParamList từ TravelDetail để đồng bộ
+type AppStackParamList = RootStackParamList & {
+  BookingTour: { travel: travel; destinationName: string };
+  BookingInfor: { props: InforProps };
+  TravelDetail: { travel: travel };
+};
+type StackProps = NativeStackScreenProps<AppStackParamList, "BookingTour">;
 
-const BookingTour: React.FC<Stack> = ({navigation, route}) => {
-    const travel: travel = route.params.travel;
-    const destinationName = route.params.destinationName;
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [dates, setDates] = useState<Date[]>([]);
-    const [selectedAdults, setSelectedAdults] = useState<number>(1);
-    const [selectedChildren, setSelectedChildren] = useState<number>(0);
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-    useEffect(() => {
-        const generateDates = () => {
-            const dateList: Date[] = [];
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                dateList.push(date);
-            }
-            setDates(dateList);
-        };
-        generateDates();
-    }, []);
-
-    const formatDate = (date: Date): string => {
-        const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-        return `${days[date.getDay()]}\n${date.getDate()}/${date.getMonth() + 1}`;
-    };
-
-    const renderDateItem = ({ item }: { item: Date }) => {
-        const isSelected = item.toDateString() === selectedDate.toDateString();
-        return (
-            <TouchableOpacity
-                style={[
-                    styles.dateButton,
-                    isSelected && styles.selectedDateButton,
-                ]}
-                onPress={() => setSelectedDate(item)}
-            >
-                <Text style={[
-                    styles.dateText,
-                    isSelected && styles.selectedDateText
-                ]}>
-                    {formatDate(item)}
-                </Text>
-            </TouchableOpacity>
-        );
-    };
-
-    const totalPrice = () => {
-        return travel.price * selectedAdults + (travel.price * 30 / 100) * selectedChildren;
-    }
-
-    const handleInfor = () => {
-        const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-        const dateTravel =  `${days[selectedDate.getDay()]} ${selectedDate.getDate()} tháng ${selectedDate.getMonth() + 1} ${selectedDate.getFullYear()}`;
-
-        const props: InforProps = {
-            tourID: travel.id,
-            AdultNum: selectedAdults,
-            Child: selectedChildren,
-            totalPrice: totalPrice(),
-            travelDate: dateTravel,
-            departure: travel.departurePoint,
-            destination: destinationName,
-        }
-        
-
-        navigation.navigate("BookingInfor", {props});
-    }
-
-    return (
-        <View style={styles.constainer}>
-            <View style={styles.header}>
-                <Text style={{fontWeight: 'bold', fontSize: 16}}>{"<"}</Text>
-                <Text
-                    style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                    }}
-                >
-                    Chọn ngày và số lượng
-                </Text>
-            </View>
-            <Text 
-                style={{
-                    fontSize: 20,
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    marginVertical: 20,
-                }}
-            >
-                Vé {travel.departurePoint} - {destinationName}
-            </Text>
-
-            {/* Calendar */}
-            <View style={styles.dateListContainer}>
-                <FlatList
-                    data={dates}
-                    renderItem={renderDateItem}
-                    keyExtractor={(item) => item.toISOString()}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.dateList}
-                />
-            </View>
-
-            <View>
-                {/* Adult */}
-                <View style={[styles.row, {justifyContent: 'space-between', marginHorizontal: 20, marginTop: 30,}]}>
-                    <View style={{flex: 1}}>
-                        <Text>Người lớn</Text>
-                        <Text style={styles.txtPrice}>{travel.price.toLocaleString('es-US')} VND</Text>
-                        <Text>140cm trở lên</Text>
-                    </View>
-                    <View style={[styles.row, {justifyContent: 'space-between', flex: 1}]}>
-                        <TouchableOpacity
-                            style={styles.btnQuan}
-                            onPress={() => setSelectedAdults(selectedAdults == 1? 1 : selectedAdults - 1)}
-                        >
-                            <Text style={{color: colors.blue, fontSize: 18,}}>
-                                -
-                            </Text>
-                        </TouchableOpacity>
-                        <Text style={{marginVertical: 10,}}>{selectedAdults}</Text>
-                        <TouchableOpacity
-                            style={styles.btnQuan}
-                            onPress={() => setSelectedAdults(selectedAdults + 1)}
-                        >
-                            <Text style={{color: colors.blue, fontSize: 18,}}>
-                                +
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                {/* Children */}
-                <View style={[styles.row, styles.borderTop, {justifyContent: 'space-between', marginHorizontal: 20, marginTop: 30,}]}>
-                    <View style={{flex: 1}}>
-                        <Text>Trẻ em</Text>
-                        <Text style={styles.txtPrice}>{(travel.price * 30 / 100).toLocaleString('es-US')} VND</Text>
-                        <Text>100 - 139cm trở lên</Text>
-                    </View>
-                    <View style={[styles.row, {justifyContent: 'space-between', flex: 1}]}>
-                        <TouchableOpacity
-                            style={styles.btnQuan}
-                            onPress={() => setSelectedChildren(selectedChildren == 0? 0 : selectedChildren - 1)}
-                        >
-                            <Text style={{color: colors.blue, fontSize: 18,}}>
-                                -
-                            </Text>
-                        </TouchableOpacity>
-                        <Text style={{marginVertical: 10,}}>{selectedChildren}</Text>
-                        <TouchableOpacity
-                            style={styles.btnQuan}
-                            onPress={() => setSelectedChildren(selectedChildren + 1)}
-                        >
-                            <Text style={{color: colors.blue, fontSize: 18,}}>
-                                +
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-
-            <View style={[styles.footer, styles.borderTop]}>
-                <View style={{marginLeft: 8}}>
-                    <Text>Tổng giá:</Text>
-                    <Text style={styles.txtPrice}>{totalPrice().toLocaleString('es-US')} VND</Text>
-                    <Text style={{color: colors.grey_text, fontWeight: 'bold', fontSize: 12}}>
-                        Bao gồm cả thuế và phí
-                    </Text>
-                </View>
-                <View style={{flex: 1, justifyContent: 'flex-end', marginLeft: 60}}>
-                    <ButtonComponent
-                        type="button"
-                        text="Đặt ngay"
-                        onPress={() => handleInfor()}
-                        borderRadius={20}
-                    />
-                </View>
-            </View>
-        </View>
-    )
+// --- Component Con: Header ---
+interface BookingHeaderProps {
+  onBackPress: () => void;
 }
+const BookingHeader: React.FC<BookingHeaderProps> = ({ onBackPress }) => (
+  <View style={styles.headerContainer}>
+    <TouchableOpacity onPress={onBackPress} style={styles.headerButton}>
+      <Ionicons name="arrow-back" size={24} color="#0A2C4D" />
+    </TouchableOpacity>
+    <Text style={styles.headerTitle}>Chọn ngày & số lượng</Text>
+    <View style={styles.headerButton} />
+  </View>
+);
 
+// --- Component Con: Lịch ---
+interface DateSelectorProps {
+  dates: Date[];
+  selectedDate: Date;
+  onSelectDate: (date: Date) => void;
+}
+const DateSelector: React.FC<DateSelectorProps> = ({ dates, selectedDate, onSelectDate }) => {
+  const formatDate = (date: Date): string => {
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return `${days[date.getDay()]}\n${date.getDate()}/${date.getMonth() + 1}`;
+  };
+
+  const renderDateItem = ({ item }: { item: Date }) => {
+    const isSelected = item.toDateString() === selectedDate.toDateString();
+    return (
+      <TouchableOpacity
+        style={[
+          styles.dateButton,
+          isSelected && styles.selectedDateButton,
+        ]}
+        onPress={() => onSelectDate(item)}
+      >
+        <Text style={[
+          styles.dateText,
+          isSelected && styles.selectedDateText
+        ]}>
+          {formatDate(item)}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <FlatList
+      data={dates}
+      renderItem={renderDateItem}
+      keyExtractor={(item) => item.toISOString()}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.dateListContainer}
+    />
+  );
+};
+
+// --- Component Con: Bộ đếm (Người lớn / Trẻ em) ---
+interface CounterRowProps {
+  label: string;
+  price: number;
+  description: string;
+  count: number;
+  onDecrease: () => void;
+  onIncrease: () => void;
+  disabledDecrease: boolean;
+}
+const CounterRow: React.FC<CounterRowProps> = ({ label, price, description, count, onDecrease, onIncrease, disabledDecrease }) => (
+  <View style={styles.counterRow}>
+    <View style={styles.textContainer}>
+      <Text style={styles.counterLabel}>{label}</Text>
+      <Text style={styles.txtPrice}>{price.toLocaleString('vi-VN')} ₫</Text>
+      <Text style={styles.descriptionText}>{description}</Text>
+    </View>
+    <View style={styles.counterControls}>
+      <TouchableOpacity
+        style={[styles.btnQuan, disabledDecrease && styles.btnQuanDisabled]}
+        onPress={onDecrease}
+        disabled={disabledDecrease}
+      >
+        <Ionicons name="remove" size={18} color={disabledDecrease ? colors.grey_text : "#6A5AE0"} />
+      </TouchableOpacity>
+      <Text style={styles.countText}>{count}</Text>
+      <TouchableOpacity
+        style={styles.btnQuan}
+        onPress={onIncrease}
+      >
+        <Ionicons name="add" size={18} color="#6A5AE0" />
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+const PassengerSelector: React.FC<{
+  travelPrice: number;
+  selectedAdults: number;
+  setSelectedAdults: (val: number) => void;
+  selectedChildren: number;
+  setSelectedChildren: (val: number) => void;
+}> = ({ travelPrice, selectedAdults, setSelectedAdults, selectedChildren, setSelectedChildren }) => (
+  <View style={styles.card}>
+    <CounterRow
+      label="Người lớn"
+      price={travelPrice}
+      description="140cm trở lên"
+      count={selectedAdults}
+      onDecrease={() => setSelectedAdults(selectedAdults > 1 ? selectedAdults - 1 : 1)}
+      onIncrease={() => setSelectedAdults(selectedAdults + 1)}
+      disabledDecrease={selectedAdults === 1}
+    />
+    <View style={styles.counterDivider} />
+    <CounterRow
+      label="Trẻ em"
+      price={travelPrice * 0.3} // 30%
+      description="100 - 139cm"
+      count={selectedChildren}
+      onDecrease={() => setSelectedChildren(selectedChildren > 0 ? selectedChildren - 1 : 0)}
+      onIncrease={() => setSelectedChildren(selectedChildren + 1)}
+      disabledDecrease={selectedChildren === 0}
+    />
+  </View>
+);
+
+// --- Component Con: Thanh Footer ---
+interface BookingBottomBarProps {
+  totalPrice: number;
+  onBookNow: () => void;
+}
+const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onBookNow }) => (
+  <View style={styles.bottomBar}>
+    <View style={styles.priceContainer}>
+      <Text style={styles.priceLabel}>Tổng giá:</Text>
+      <Text style={styles.priceText}>
+        {totalPrice.toLocaleString("vi-VN")} ₫
+      </Text>
+      <Text style={styles.priceSubLabel}>Bao gồm cả thuế và phí</Text>
+    </View>
+    <View style={styles.bookButtonContainer}>
+      <ButtonComponent
+        type="button"
+        text="Đặt ngay"
+        textColor={colors.white}
+        onPress={onBookNow}
+        width={"100%"}
+        height={50}
+        backgroundColor="#0194F3"
+        borderRadius={15}
+      />
+    </View>
+  </View>
+);
+
+
+// --- Component Chính: BookingTour ---
+const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
+  const { travel, destinationName } = route.params;
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [dates, setDates] = useState<Date[]>([]);
+  const [selectedAdults, setSelectedAdults] = useState<number>(1);
+  const [selectedChildren, setSelectedChildren] = useState<number>(0);
+
+  useEffect(() => {
+    const generateDates = () => {
+      const dateList: Date[] = [];
+      const today = new Date();
+      for (let i = 0; i < 14; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        dateList.push(date);
+      }
+      setDates(dateList);
+    };
+    generateDates();
+  }, []);
+
+  const totalPrice = useCallback(() => {
+    return travel.price * selectedAdults + (travel.price * 0.3) * selectedChildren;
+  }, [travel.price, selectedAdults, selectedChildren]);
+
+  const handleInfor = useCallback(() => {
+    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const dateTravel = `${days[selectedDate.getDay()]} ${selectedDate.getDate()} tháng ${selectedDate.getMonth() + 1} ${selectedDate.getFullYear()}`;
+
+    const props: InforProps = {
+      tourID: travel.id,
+      AdultNum: selectedAdults,
+      Child: selectedChildren,
+      totalPrice: totalPrice(),
+      travelDate: dateTravel,
+      departure: travel.departurePoint,
+      destination: destinationName,
+    };
+
+    navigation.navigate("BookingInfor", { props });
+  }, [navigation, travel, destinationName, selectedDate, selectedAdults, selectedChildren, totalPrice]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <BookingHeader onBackPress={() => navigation.goBack()} />
+      <ScrollView style={styles.scrollView}>
+        <Text style={styles.tourTitle}>
+          Vé {travel.title}
+        </Text>
+
+        <DateSelector
+          dates={dates}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
+
+        <PassengerSelector
+          travelPrice={travel.price}
+          selectedAdults={selectedAdults}
+          setSelectedAdults={setSelectedAdults}
+          selectedChildren={selectedChildren}
+          setSelectedChildren={setSelectedChildren}
+        />
+      </ScrollView>
+      
+      <BookingBottomBar
+        totalPrice={totalPrice()}
+        onBookNow={handleInfor}
+      />
+    </SafeAreaView>
+  );
+};
+
+// --- StyleSheet ---
 const styles = StyleSheet.create({
-    constainer: {
-        flex: 1,
-        backgroundColor: colors.white,
-        position: 'relative'
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F7FF', // Màu nền nhạt
+  },
+  scrollView: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor: colors.white,
+    paddingHorizontal: 15,
+    paddingTop: 50, // An toàn cho status bar
+    paddingBottom: 15,
+    borderBottomColor: colors.light_Blue,
+    borderBottomWidth: 1,
+  },
+  headerButton: {
+    width: 40, // Đảm bảo đủ không gian
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0A2C4D',
+  },
+  tourTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0A2C4D',
+    textAlign: 'center',
+    marginVertical: 20,
+    paddingHorizontal: 20,
+  },
+  dateListContainer: {
+    paddingHorizontal: 15, // Padding cho item đầu tiên
+    paddingBottom: 10,
+  },
+  dateButton: {
+    width: 65,
+    height: 75,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
+    borderRadius: 12, // Bo góc
+    backgroundColor: colors.white,
+    elevation: 2, // Shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  selectedDateButton: {
+    backgroundColor: '#0194F3', // Màu tím
+    elevation: 4,
+  },
+  dateText: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: colors.light_black,
+    fontWeight: '500',
+  },
+  selectedDateText: {
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  card: {
+    marginHorizontal: 20,
+    marginTop: 25,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  counterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+  },
+  counterDivider: {
+    borderTopColor: colors.light_Blue,
+    borderTopWidth: 1,
+    marginHorizontal: 15,
+  },
+  textContainer: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  counterLabel: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#0A2C4D',
+  },
+  txtPrice: {
+    marginVertical: 2,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: colors.red,
+  },
+  descriptionText: {
+    fontSize: 13,
+    color: colors.grey_text,
+  },
+  counterControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  btnQuan: {
+    width: 30, // Tăng kích thước
+    height: 30,
+    backgroundColor: '#EAF2FF', // Màu xanh nhạt
+    borderRadius: 15, // Fix lỗi "50%"
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnQuanDisabled: {
+    backgroundColor: colors.light, // Màu xám nhạt
+  },
+  countText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0A2C4D',
+    marginHorizontal: 15,
+    width: 25, // Đảm bảo không bị nhảy layout
+    textAlign: 'center',
+  },
+  bottomBar: {
+    // Copy style từ TravelDetail
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.light_Blue,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    paddingBottom: 20, // Thêm padding cho thanh home
+  },
+  priceContainer: {
+    flex: 0.5, // Tăng không gian
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: colors.grey_text,
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FF7A2F',
+  },
+  priceSubLabel: {
+    color: colors.grey_text,
+    fontWeight: '500',
+    fontSize: 12,
+  },
+  bookButtonContainer: {
+    flex: 0.45, // Giảm 1 chút
+  },
+  // Xóa các style cũ không cần thiết
+  // constainer, header, row, dateList, footer
+});
 
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        backgroundColor: colors.white,
-        paddingHorizontal: 10,
-        paddingVertical: 12,
-        borderBottomColor: colors.light,
-        borderBottomWidth: 1,
-    },
-
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-
-    dateListContainer: {
-        marginTop: 20,
-        paddingHorizontal: 10,
-    },
-
-    dateList: {
-        paddingVertical: 10,
-    },
-
-    dateButton: {
-        width: 60,
-        height: 70,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 5,
-        borderRadius: 8,
-        backgroundColor: colors.light,
-        paddingVertical: 8,
-    },
-
-    selectedDateButton: {
-        backgroundColor: colors.blue_splash,
-    },
-
-    dateText: {
-        fontSize: 14,
-        textAlign: 'center',
-        color: colors.light_black,
-    },
-
-    selectedDateText: {
-        color: colors.white,
-        fontWeight: 'bold',
-    },
-
-    txtPrice: {
-        marginVertical: 4,
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: colors.red,
-    },
-
-    btnQuan: {
-        width: 28,
-        height: 28,
-        backgroundColor: colors.light_Blue,
-        borderRadius: "50%",
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 8,
-    },
-
-    borderTop: {
-        borderTopColor: colors.light_Blue,
-        borderTopWidth: 1,
-        paddingTop: 20,
-    },
-
-    border: {
-        borderWidth: 1,
-        borderColor: colors.light_Blue,
-        borderRadius: 20,
-    },
-
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        width: "100%",
-        backgroundColor: colors.white,
-        paddingVertical: 20,
-        paddingHorizontal: 10,
-        flexDirection: 'row',
-
-    }
-})
 export default BookingTour;

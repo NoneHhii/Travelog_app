@@ -6,7 +6,6 @@ import { BookingScreen } from "../screens/BookingScreen";
 import { SavingScreen } from "../screens/SavingScreen";
 import { Image, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { ToolBarComponent } from "../components/ToolBarComponent";
 import { AccountScreen } from "../screens/AccountScreen";
 
 const Tab = createBottomTabNavigator();
@@ -15,7 +14,7 @@ export const BottomTabs: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        header: () => <ToolBarComponent bill={false} />,
+        header: () => null,
         tabBarShowLabel: true,
         tabBarActiveTintColor: colors.blue,
         tabBarInactiveTintColor: "#8D8585",
@@ -85,7 +84,7 @@ export const BottomTabs: React.FC = () => {
         name="Bookings"
         component={BookingScreen}
         options={{
-          header: () => <ToolBarComponent bill={true} />,
+          header: () => null,
         }}
       />
       <Tab.Screen name="Save" component={SavingScreen} />
