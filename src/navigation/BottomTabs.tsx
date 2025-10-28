@@ -4,8 +4,8 @@ import { colors } from "../constants/colors";
 import { HomeScreen } from "../screens/HomeScreen";
 import { BookingScreen } from "../screens/BookingScreen";
 import { SavingScreen } from "../screens/SavingScreen";
-import {Image, Animated} from "react-native"
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Image, Animated } from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ToolBarComponent } from "../components/ToolBarComponent";
 import { AccountScreen } from "../screens/AccountScreen";
 
@@ -34,19 +34,19 @@ export const BottomTabs: React.FC = () => {
             iconSource = focused
               ? require("../../assets/logo.png")
               : require("../../assets/logo.png");
-          } else if (route.name === "explore") {
+          } else if (route.name === "Explore") {
             iconSource = focused
               ? require("../../assets/explore.png")
               : require("../../assets/explore.png");
-          } else if (route.name === "bookings") {
+          } else if (route.name === "Bookings") {
             iconSource = focused
               ? require("../../assets/bill.png")
               : require("../../assets/bill.png");
-          } else if (route.name === "save") {
+          } else if (route.name === "Save") {
             iconSource = focused
               ? require("../../assets/save.png")
               : require("../../assets/save.png");
-          } else if (route.name === "account") {
+          } else if (route.name === "Account") {
             iconSource = focused
               ? require("../../assets/account.png")
               : require("../../assets/account.png");
@@ -61,38 +61,35 @@ export const BottomTabs: React.FC = () => {
               useNativeDriver: true,
             }).start();
           }, [focused]);
-            return (
-                <Animated.View
-                    style={{
-                        transform: [{scale: scaleAnimate}],
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Image
-                        source={iconSource}
-                        style={{width: size, height: size, tintColor: color}}
-                        resizeMode="contain"
-                    />
-                </Animated.View>
-            )
-          }
+          return (
+            <Animated.View
+              style={{
+                transform: [{ scale: scaleAnimate }],
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Image
+                source={iconSource}
+                style={{ width: size, height: size, tintColor: color }}
+                resizeMode="contain"
+              />
+            </Animated.View>
+          );
+        },
       })}
     >
-      <Tab.Screen 
-          name="Home" 
-          component={HomeScreen}
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Explore" component={HomeScreen} />
+      <Tab.Screen
+        name="Bookings"
+        component={BookingScreen}
+        options={{
+          header: () => <ToolBarComponent bill={true} />,
+        }}
       />
-      <Tab.Screen name="explore" component={HomeScreen}/>
-      <Tab.Screen 
-          name="bookings" 
-          component={BookingScreen}
-          options={{
-              header: () => <ToolBarComponent bill={true}/>
-          }}
-      />
-      <Tab.Screen name="save" component={SavingScreen}/>
-      <Tab.Screen name="account" component={AccountScreen}/>
+      <Tab.Screen name="Save" component={SavingScreen} />
+      <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>
-  )
-}
+  );
+};
