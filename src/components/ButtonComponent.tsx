@@ -42,7 +42,8 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
                     styles.button,
                     {backgroundColor},
                     disable && styles.disable,
-                    {width: width, height: height}
+                    {width: width, height: height},
+                    {borderRadius: borderRadius > 0 ? borderRadius : 0}
                 ]}
                 onPress = {onPress}
                 disabled = {disable}

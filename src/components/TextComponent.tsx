@@ -11,6 +11,7 @@
         font?:string;
         styles?: StyleProp<TextStyle>,
         fontWeight?: TextStyle["fontWeight"];
+        numberOfLines?: number;
     }
 
     export const TextComponent : React.FC<TextProps> = ({
@@ -20,16 +21,20 @@
         flex,
         font,
         styles,
-        fontWeight
+        fontWeight,
+        numberOfLines,
     }) => {
         return (
-            <Text style={[{
-                color: color ?? colors.black,
-                fontSize: size ?? 14,
-                fontFamily: font,
-                flex: flex ?? 0,
-                fontWeight: fontWeight,
-            }, styles]}>
+            <Text 
+                numberOfLines={numberOfLines? numberOfLines: 5}
+                style={[{
+                    color: color ?? colors.black,
+                    fontSize: size ?? 14,
+                    fontFamily: font,
+                    flex: flex ?? 0,
+                    fontWeight: fontWeight,
+                }, styles]}
+            >
                 {text}
             </Text>
         )

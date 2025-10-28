@@ -11,6 +11,7 @@ interface travelProps {
     size?: number,
     RadiusTop?: number,
     RadiusBottom?: number,
+    handleDetail?: (travel: travel) => void,
 }
 
 
@@ -21,6 +22,7 @@ export const Slider: React.FC<travelProps> = ({
     size=240,
     RadiusTop = 0,
     RadiusBottom = 0,
+    handleDetail,
 }) => {
 
     const renderItem = ({item}: {item: travel}) => (
@@ -32,6 +34,7 @@ export const Slider: React.FC<travelProps> = ({
                 travel={item}
                 RadiusTop={RadiusTop}
                 RadiusBottom={RadiusBottom}
+                handleDetail={handleDetail}
             />
         </View>
     ) 

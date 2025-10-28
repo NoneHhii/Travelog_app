@@ -1,5 +1,5 @@
 import React from "react"
-import { Image, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import { colors } from "../constants/colors";
 import travel from "../screens/HomeScreen";
 import { TextComponent } from "./TextComponent";
@@ -11,6 +11,7 @@ interface travelProps {
     size?: number,
     RadiusTop?: number,
     RadiusBottom?: number,
+    handleDetail?: (travel: travel) => void,
 }
 
 export const TravelItem: React.FC<travelProps> = ({
@@ -19,11 +20,15 @@ export const TravelItem: React.FC<travelProps> = ({
     size=240,
     RadiusTop = 0,
     RadiusBottom = 0,
+    handleDetail,
 }) => {
     return (
-        <View style={{
-            marginVertical: 10,
-        }}>
+        <TouchableOpacity 
+            onPress={() => handleDetail(travel)}
+            style={{
+                marginVertical: 10,
+            }}
+        >
             <View style={{
                 width: size,
                 borderTopLeftRadius: RadiusTop,
@@ -32,7 +37,7 @@ export const TravelItem: React.FC<travelProps> = ({
                 overflow: "hidden",
             }}>
                 <Image 
-                    source={travel.img} 
+                    source={{uri: travel.images[0]}} 
                     style={{
                         width: size,
                         height: size,
@@ -54,17 +59,18 @@ export const TravelItem: React.FC<travelProps> = ({
                 justifyContent: 'space-between',
             }}>
                 <TextComponent
+                    numberOfLines={1}
                     text={travel.title}
                     fontWeight='bold'
                     size={18}
                 />
                 <View>
-                    <TextComponent
+                    {/* <TextComponent
                         text={travel.date}
                         styles={{
                             textAlign: 'left'
                         }}
-                    />
+                    /> */}
                     <TextComponent
                         text={`${travel.price.toString()} VND`}
                         fontWeight='bold'
@@ -73,6 +79,6 @@ export const TravelItem: React.FC<travelProps> = ({
                     />
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     )
 }

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Image, StyleSheet, View, FlatList, ImageBackground, ScrollView } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { ButtonComponent } from "../components/ButtonComponent"
@@ -7,42 +7,46 @@ import { MenuComponent } from "../components/MenuComponent"
 import { colors } from "../constants/colors"
 import { TravelItem } from "../components/TravelItem"
 import { Slider } from "../components/Slider"
+import { getAllTravel } from "../api/apiClient"
+import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { StaticParamList } from "@react-navigation/native"
 
-export default interface travel {
-    id: number,
-    title: string,
-    date: string,
-    price: number,
-    img: any,
-
+export interface Itinerary {
+    day: number,
+    details: string,
+    title: string, 
 }
 
-const travels : travel[] = [
-    {
-        id: 1, 
-        title: 'Ho Chi Minh City - Hanoi', 
-        date: '19 Dec 2025', 
-        price: 896600, 
-        img: require('../../assets/travelImg.jpg')
-    },
-    {
-        id: 2, 
-        title: 'Hanoi - Ho Chi Minh City', 
-        date: '19 Dec 2025', 
-        price: 896600, 
-        img: require('../../assets/travelImg.jpg')
-    },
-    {
-        id: 3, 
-        title: 'Ho Chi Minh City - Quang Ngai', 
-        date: '19 Dec 2025', 
-        price: 697000, 
-        img: require('../../assets/travelImg.jpg')
+export default interface travel {
+    id: string,
+    departurePoint: string,
+    destinationID: string,
+    images: string[],
+    description: string,
+    itinerary: Itinerary[],
+    price: number,
+    title: string,
+    averageRating: number,
+    reviewCount: number,
+}
+type Stack = NativeStackScreenProps<StaticParamList, 'Home'>;
+
+export const HomeScreen : React.FC<Stack> = ({navigation}) => {
+
+    const [travels, setTravels] = useState<any[]>([]);
+
+    useEffect(() => {
+        
+        (async () => {
+            const data = await getAllTravel();
+            setTravels(data);
+        })();
+    }, []);
+
+    const handleDetail = (travel: travel) => {
+        navigation.navigate('TravelDetail', {travel});
     }
-
-]
-
-export const HomeScreen : React.FC = () => {
+    
 
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -202,6 +206,7 @@ export const HomeScreen : React.FC = () => {
                         travels={travels}
                         RadiusTop={15}
                         RadiusBottom={15}
+                        handleDetail={handleDetail}
                     />
                 </ImageBackground
                 
