@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +17,7 @@ import { TextComponent } from "../components/TextComponent";
 import { TravelItemGrid } from "../components/TravelItemGrid";
 import { getAllTravel } from "../api/apiClient";
 import travel from "./HomeScreen";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Import RootStackParamList từ RootNavigator để type safety
 type RootStackParamList = {

@@ -13,11 +13,11 @@ import {
 import { colors } from "../constants/colors";
 import { Booking, Guest, InforProps } from "./BookingInfor"; // Giả sử types ở đây
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "./HomeScreen"; // Import RootStackParamList
 import createAcronym from "../utils/acronym";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { createBooking } from "../api/apiClient";
 import { Ionicons } from "@expo/vector-icons"; // Thêm
+import { RootStackParamList } from "../navigation/RootNavigator";
 
 export interface PaymentType {
   infor: InforProps;
@@ -29,14 +29,7 @@ export interface PaymentType {
   };
 }
 
-// Đồng bộ ParamList
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  BookingInfor: { props: InforProps };
-  TravelDetail: { travel: travel };
-  Payment: { payment: PaymentType };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "Payment">;
+type StackProps = NativeStackScreenProps<RootStackParamList, "Payment">;
 
 // --- Component Con: Header ---
 interface PaymentHeaderProps {
