@@ -22,6 +22,7 @@ import {
   NativeStackNavigationProp,
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
+
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/RootNavigator"; // Assuming RootNavigator exports this
