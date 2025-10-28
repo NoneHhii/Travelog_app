@@ -115,7 +115,7 @@ export const SavingScreen: React.FC = () => {
                 <TouchableOpacity style={styles.card} activeOpacity={0.7}>
                     <View style={styles.attractionHeader}>
                         <Text style={styles.attractionTitle}>
-                            Must-see attractions ✨
+                            Những điểm tham quan không thể bỏ qua ✨
                         </Text>
                         <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
                     </View>
