@@ -53,6 +53,7 @@ export type RootStackParamList = {
   Home: undefined;
   TravelDetail: { travel: travel };
   Chatbot: undefined;
+  Search: undefined;
 };
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
@@ -148,7 +149,9 @@ const useDraggableFloatingButton = () => {
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
 
-const HomeHeader: React.FC = () => (
+const HomeHeader: React.FC<{ onSearchPress: () => void }> = ({
+  onSearchPress,
+}) => (
   <LinearGradient
     colors={["#E0F7FF", "#FFFFFF"]}
     style={styles.headerContainer}
@@ -187,19 +190,24 @@ const HomeHeader: React.FC = () => (
         </TouchableOpacity>
       </View>
     </View>
-    <View style={styles.searchBarContainer}>
+    <TouchableOpacity
+      style={styles.searchBarContainer}
+      onPress={onSearchPress}
+      activeOpacity={0.7}
+    >
       <Ionicons
         name="search"
         size={22}
         color={colors.grey_text}
         style={styles.searchIcon}
       />
-      <TextInput
-        placeholder="Tìm kiếm điểm đến mơ ước..."
-        placeholderTextColor={colors.grey_text}
-        style={styles.searchInput}
+      <TextComponent
+        text="Tìm kiếm điểm đến mơ ước..."
+        size={15}
+        color={colors.grey_text}
+        styles={{ flex: 1 }}
       />
-    </View>
+    </TouchableOpacity>
   </LinearGradient>
 );
 
@@ -376,6 +384,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [navigation]
   );
 
+  const handleSearchPress = useCallback(() => {
+    navigation.navigate("Search");
+  }, [navigation]);
+
   if (error) {
     return (
       <View style={styles.centerContainer}>
@@ -399,7 +411,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         nestedScrollEnabled={true}
       >
-        <HomeHeader />
+        <HomeHeader onSearchPress={handleSearchPress} />
         <MenuGrid />
         <OffersSection />
         <TravelSection travels={travels} onPressItem={handleDetail} />
