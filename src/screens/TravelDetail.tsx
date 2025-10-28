@@ -141,7 +141,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
         <View style={styles.contentContainer}>
           <View style={styles.section}>
             <Text style={styles.overviewTitle}>
-              {travel.departurePoint} - {destination?.name}
+              {travel.title}
             </Text>
             <View style={styles.infoRow}>
               <FontAwesome name="star" size={16} color="#FFA500" />
@@ -159,11 +159,6 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
-            {/* ĐÃ THÊM LẠI DÒNG NÀY (GIỐNG BẢN CŨ CỦA BẠN) */}
-            <Text style={styles.tourTitleText}>
-              {travel.title}
-            </Text>
-
             <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
             <Text style={styles.descriptionText}>{travel.description}</Text>
           </View>

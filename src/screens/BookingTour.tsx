@@ -232,7 +232,7 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
       <BookingHeader onBackPress={() => navigation.goBack()} />
       <ScrollView style={styles.scrollView}>
         <Text style={styles.tourTitle}>
-          Vé {travel.departurePoint} - {destinationName}
+          Vé {travel.title}
         </Text>
 
         <DateSelector
