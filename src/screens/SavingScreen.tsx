@@ -1,35 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
+    Image,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
     SafeAreaView,
     Text,
+    FlatList, // Vẫn cần FlatList nếu Slider không được dùng
+    ActivityIndicator
 } from "react-native";
-import { colors } from "../constants/colors"; // Vẫn dùng colors chung nếu cần
-import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../constants/colors";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-// --- Màu sắc nhất quán (Đã đổi sang Xanh Dương) ---
-const lightBackground = "#F4F7FF";      // Nền chính (giữ nguyên xanh rất nhạt)
-const themeColor = "#0194F3";          // Xanh dương chính (thay cho tím)
+// --- Import Types and API ---
+import travel, { RootStackParamList } from "./HomeScreen";
+import { getAllTravel } from "../api/apiClient";
+import { TravelItem } from "../components/TravelItem";
+import { Slider } from "../components/Slider"; // *** THÊM IMPORT SLIDER ***
+
+// --- Màu sắc nhất quán (Giữ nguyên) ---
+const lightBackground = "#F4F7FF";
+const themeColor = "#0194F3";
 const cardBackgroundColor = colors.white;
 const primaryTextColor = "#0A2C4D";
 const secondaryTextColor = colors.grey_text;
-const linkColor = themeColor;           // Link màu xanh dương chính
+const linkColor = themeColor;
+// ... (các màu khác giữ nguyên) ...
+const previewBox1Color = '#D6EEFF';
+const previewBox2Color = '#EBF8FF';
+const previewBox3Color = '#F5FAFF';
+const collectionIconBackgroundColor = previewBox1Color;
+const collectionIconColor = themeColor;
 
-const activeTabColor = themeColor;        // Tab active màu xanh dương
-const inactiveTabBackground = "#D6EEFF";  // Nền xanh dương rất nhạt cho tab inactive (thay cho tím nhạt)
-const inactiveTabColor = "#006ADC";     // Chữ xanh dương đậm hơn cho tab inactive (thay cho tím đậm)
+// --- Định nghĩa kiểu Navigation ---
+type SavingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const previewBox1Color = '#D6EEFF';     // Box preview 1 (xanh dương nhạt 1)
-const previewBox2Color = '#EBF8FF';     // Box preview 2 (xanh dương nhạt 2)
-const previewBox3Color = '#F5FAFF';     // Box preview 3 (xanh dương nhạt 3)
-
-const collectionIconBackgroundColor = previewBox1Color; // Nền icon bookmark (xanh dương nhạt 1)
-const collectionIconColor = themeColor;                // Icon bookmark (xanh dương chính)
-
-// --- Component Con: Header (Giữ nguyên) ---
+// --- Header Component (Giữ nguyên) ---
 const SavingHeader: React.FC = () => (
     <View style={styles.headerContainer}>
         <View style={styles.headerButtonPlaceholder} />
@@ -38,32 +47,45 @@ const SavingHeader: React.FC = () => (
     </View>
 );
 
-export const SavingScreen: React.FC = () => {
+// --- Custom Hook: Lấy dữ liệu Saved Travels (Giữ nguyên) ---
+const useSavedTravels = () => {
+    const [savedTravels, setSavedTravels] = useState<travel[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
-    // --- Component Con: Tab Button (Sử dụng màu xanh mới) ---
-    interface TabButtonProps {
-        text: string;
-        isActive: boolean;
-        onPress: () => void;
-    }
-    const TabButton: React.FC<TabButtonProps> = ({ text, isActive, onPress }) => (
-        <TouchableOpacity
-            style={[
-                styles.tabButtonBase,
-                // Sử dụng màu active/inactive mới
-                isActive ? styles.tabButtonActive : styles.tabButtonInactive
-            ]}
-            onPress={onPress}
-        >
-            <Text style={[
-                styles.tabButtonTextBase,
-                 // Sử dụng màu active/inactive mới
-                isActive ? styles.tabButtonTextActive : styles.tabButtonTextInactive
-            ]}>
-                {text}
-            </Text>
-        </TouchableOpacity>
+    useEffect(() => {
+        (async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const data = await getAllTravel();
+                setSavedTravels(data);
+            } catch (err) {
+                console.error("Error fetching saved travels:", err);
+                setError(err as Error);
+            } finally {
+                setIsLoading(false);
+            }
+        })();
+    }, []);
+
+    return { savedTravels, isLoading, error };
+};
+
+
+export const SavingScreen: React.FC = () => {
+    const navigation = useNavigation<SavingScreenNavigationProp>();
+    const { savedTravels, isLoading, error } = useSavedTravels();
+
+    const handleDetail = useCallback(
+        (item: travel) => {
+            navigation.navigate("TravelDetail", { travel: item });
+        },
+        [navigation]
     );
+
+    // --- Component Con: Phần hiển thị Saved Travels List (Có thể bỏ nếu chỉ dùng Slider ngang) ---
+    // const renderSavedTravelsList = () => { ... }; // Có thể xóa nếu không cần list dọc nữa
 
     return (
         <SafeAreaView style={styles.screenContainer}>
@@ -72,15 +94,15 @@ export const SavingScreen: React.FC = () => {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
             >
-                {/* --- Card "Xem tất cả sản phẩm đã lưu" --- */}
+                {/* --- Card "Xem tất cả sản phẩm đã lưu" (Giữ nguyên) --- */}
                 <TouchableOpacity style={styles.cardLink} activeOpacity={0.8}>
-                    <View style={styles.cardContentLeft}>
+                   {/* ... nội dung card ... */}
+                   <View style={styles.cardContentLeft}>
                         <Text style={styles.cardLinkText}>
                             Xem tất cả sản phẩm đã lưu
                         </Text>
                         <Ionicons name="arrow-forward" size={18} color={themeColor} style={styles.cardLinkIcon} />
                     </View>
-                    {/* Grid Preview (dùng màu xanh mới) */}
                     <View style={styles.gridPreview}>
                         <View style={[styles.gridLargeBox, { backgroundColor: previewBox1Color }]} />
                         <View style={styles.gridSmallColumn}>
@@ -90,9 +112,10 @@ export const SavingScreen: React.FC = () => {
                     </View>
                 </TouchableOpacity>
 
-                {/* --- Card "Hãy sắp xếp các sản phẩm đã lưu!" --- */}
+                {/* --- Card "Hãy sắp xếp các sản phẩm đã lưu!" (Giữ nguyên) --- */}
                 <View style={styles.card}>
-                    <View style={styles.collectionHeader}>
+                   {/* ... nội dung card ... */}
+                   <View style={styles.collectionHeader}>
                         <View style={[styles.collectionIconWrapper, { backgroundColor: collectionIconBackgroundColor }]}>
                             <Ionicons name="bookmarks" size={24} color={collectionIconColor} />
                         </View>
@@ -106,20 +129,40 @@ export const SavingScreen: React.FC = () => {
                         </View>
                     </View>
                     <TouchableOpacity style={styles.createCollectionLink}>
-                        {/* Link màu xanh dương */}
                         <Text style={[styles.createCollectionText, { color: linkColor }]}>Tạo bộ sưu tập mới</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* --- Card "Must-see attractions" --- */}
-                <TouchableOpacity style={styles.card} activeOpacity={0.7}>
-                    <View style={styles.attractionHeader}>
+                {/* --- Card "Những điểm tham quan không thể bỏ qua ✨" (ĐÃ SỬA) --- */}
+                <View style={styles.card}>
+                    <TouchableOpacity style={styles.attractionHeader} activeOpacity={0.7}>
                         <Text style={styles.attractionTitle}>
                             Những điểm tham quan không thể bỏ qua ✨
                         </Text>
+                        {/* Có thể thay bằng "Xem tất cả >" nếu muốn */}
                         <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
-                    </View>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+
+                    {/* --- THÊM SLIDER NGANG VÀO ĐÂY --- */}
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }}/>
+                    ) : error ? (
+                         <Text style={[styles.errorText, {marginTop: 10}]}>Lỗi tải gợi ý.</Text>
+                    ) : savedTravels.length > 0 ? (
+                        <Slider
+                            travels={savedTravels} // Dùng dữ liệu đã fetch
+                            handleDetail={handleDetail}
+                            RadiusTop={16} // Giữ bo góc giống Home
+                            RadiusBottom={16}
+                            // Bỏ marginTop của Slider nếu style card đã có padding
+                            // Hoặc thêm style riêng cho Slider trong card này nếu cần
+                        />
+                    ) : (
+                         <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
+                    )}
+                    {/* --- KẾT THÚC SLIDER --- */}
+
+                </View>
 
             </ScrollView>
         </SafeAreaView>
@@ -135,7 +178,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContentContainer: {
-        paddingVertical: 10,
+        paddingVertical: 15,
         paddingHorizontal: 15,
         paddingBottom: 30,
     },
@@ -160,15 +203,15 @@ const styles = StyleSheet.create({
     headerButtonPlaceholder: {
         width: 40,
     },
-    // Card chung
+    // Card General Style
     card: {
         backgroundColor: cardBackgroundColor,
         borderRadius: 12,
         padding: 15,
         marginBottom: 15,
-        elevation: 2,
-        shadowColor: "#999",
-        shadowOffset: { width: 0, height: 1 },
+        elevation: 1.5,
+        shadowColor: "#AAB2C8",
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
@@ -181,9 +224,9 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 15,
         marginBottom: 15,
-        elevation: 2,
-        shadowColor: "#999",
-        shadowOffset: { width: 0, height: 1 },
+        elevation: 1.5,
+        shadowColor: "#AAB2C8",
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
@@ -195,7 +238,7 @@ const styles = StyleSheet.create({
     cardLinkText: {
         fontSize: 15,
         fontWeight: "600",
-        color: themeColor, // Màu xanh dương chính
+        color: themeColor,
     },
     cardLinkIcon: {
         marginLeft: 6,
@@ -232,7 +275,6 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 8,
-        // backgroundColor được set inline
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -257,7 +299,6 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
     },
     createCollectionText: {
-        // color được set inline
         fontSize: 14,
         fontWeight: '500',
     },
@@ -266,6 +307,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
+        marginBottom: 10, // Thêm khoảng cách dưới tiêu đề trước Slider
     },
     attractionTitle: {
         fontSize: 18,
@@ -274,31 +316,18 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
     },
-    // Tab Button Styles (Đã cập nhật màu)
-    tabButtonBase: {
-        paddingVertical: 9,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-    tabButtonActive: {
-        backgroundColor: activeTabColor, // Xanh dương chính
-        borderColor: activeTabColor,
-    },
-    tabButtonInactive: {
-        backgroundColor: inactiveTabBackground, // Xanh dương rất nhạt
-        borderColor: inactiveTabBackground,
-    },
-    tabButtonTextBase: {
+    // Styles cho phần Slider ngang
+     errorText: {
+         color: colors.red,
+         fontSize: 14,
+         textAlign: 'center', // Căn giữa
+     },
+     noSuggestionText: { // Text khi không có gợi ý
         fontSize: 14,
-        fontWeight: '500',
+        color: secondaryTextColor,
         textAlign: 'center',
-    },
-    tabButtonTextActive: {
-        color: colors.white, // Chữ trắng
-    },
-    tabButtonTextInactive: {
-        color: inactiveTabColor, // Chữ xanh dương đậm hơn
-    },
+        marginTop: 10,
+     }
+    // Bỏ sectionTitle nếu không dùng cho list dọc nữa
+    // sectionTitle: { ... },
 });
