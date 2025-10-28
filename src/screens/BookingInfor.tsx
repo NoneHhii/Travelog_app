@@ -49,7 +49,7 @@ export interface InforProps {
     Child: number,
     travelDate: string,
     departure: string,
-    destination: string,
+    destinations: Array<string>,
 }
 
 

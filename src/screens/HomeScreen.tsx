@@ -319,7 +319,7 @@ const DraggableChatbotButton: React.FC = () => {
     <View style={styles.floatingButtonContainer}>
       <Animated.View style={animatedStyle} {...panHandlers}>
         <LinearGradient
-          colors={["#8A78F5", "#6A5AE0"]}
+          colors={["#90cff9ff", "#0194F3"]}
           style={styles.floatingButton}
         >
           <MaterialCommunityIcons name="robot-outline" size={32} color={colors.white} />
