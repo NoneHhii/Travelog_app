@@ -1,7 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
-import { ToolBarComponent } from "../components/ToolBarComponent";
 import travel, { HomeScreen } from "../screens/HomeScreen";
 import { IntroPage } from "../screens/IntroPage";
 import { SplashScreen } from "../screens/SplashScreen";
@@ -48,7 +47,7 @@ export const RootNavigator: React.FC = () => {
           name="Home"
           component={HomeScreen}
           options={{
-            header: () => <ToolBarComponent bill={true} />,
+            headerShown: false,
           }}
         />
         <Stack.Screen

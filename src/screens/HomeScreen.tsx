@@ -9,8 +9,9 @@ import {
   Animated,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity, // Dùng cho nút "Xem tất cả"
-  TextInput, // Dùng cho thanh tìm kiếm
+  TouchableOpacity,
+  TextInput,
+  // Pressable, // Bạn có thể dùng Pressable hoặc TouchableOpacity
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TextComponent } from "../components/TextComponent";
@@ -23,16 +24,13 @@ import {
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-// Import icons
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-// --- Kích thước & Hằng số ---
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const BUTTON_SIZE = 65; // Kích thước nút chatbot mới
+const BUTTON_SIZE = 65;
 const FLOATING_BUTTON_POSITION_BOTTOM = 30;
 const FLOATING_BUTTON_POSITION_RIGHT = 20;
 
-// --- Định nghĩa Types (Giữ nguyên) ---
 export interface Itinerary {
   day: number;
   details: string;
@@ -56,13 +54,11 @@ export type RootStackParamList = {
   Home: undefined;
   TravelDetail: { travel: travel };
   Chatbot: undefined;
-  // Thêm các màn hình khác nếu có
 };
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// --- Custom Hook: Lấy dữ liệu Travel (Giữ nguyên) ---
 const useTravelData = () => {
   const [travels, setTravels] = useState<travel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,8 +82,6 @@ const useTravelData = () => {
   return { travels, isLoading, error };
 };
 
-// --- Custom Hook: Logic cho nút Chatbot kéo thả (Giữ nguyên) ---
-// (Logic không đổi, chỉ thay đổi style ở component)
 const useDraggableFloatingButton = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const pan = useRef(new Animated.ValueXY()).current;
@@ -124,8 +118,8 @@ const useDraggableFloatingButton = () => {
         const containerStartY =
           SCREEN_HEIGHT -
           FLOATING_BUTTON_POSITION_BOTTOM -
-          BUTTON_SIZE - 
-          80; // Trừ thêm 80 (chiều cao của bottom tab bar)
+          BUTTON_SIZE -
+          80; 
 
         const minX = -containerStartX;
         const maxX = SCREEN_WIDTH - containerStartX - BUTTON_SIZE;
@@ -152,10 +146,10 @@ const useDraggableFloatingButton = () => {
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
 
-// --- Component Con: Header ---
+// --- Component Con: Header (ĐÃ ĐƯỢC CẬP NHẬT) ---
 const HomeHeader: React.FC = () => (
   <LinearGradient
-    colors={["#E0F7FF", "#FFFFFF"]} // Gradient xanh nhạt tới trắng
+    colors={["#E0F7FF", "#FFFFFF"]}
     style={styles.headerContainer}
   >
     <View style={styles.headerTopRow}>
@@ -172,7 +166,28 @@ const HomeHeader: React.FC = () => (
           color={colors.grey_text}
         />
       </View>
-      {/* <Image source={require("../../assets/avatar.png")} style={styles.avatar} /> */}
+
+      {/* === PHẦN ĐƯỢC GỘP VÀO === */}
+      <View style={styles.headerIcons}>
+        <TouchableOpacity>
+          <Ionicons
+            name="notifications-outline"
+            size={28}
+            color="#0A2C4D" // Đổi màu cho hợp với text
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={28}
+            color="#0A2C4D" // Đổi màu cho hợp với text
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+      {/* === KẾT THÚC PHẦN GỘP === */}
+
     </View>
     <View style={styles.searchBarContainer}>
       <Ionicons
@@ -186,11 +201,13 @@ const HomeHeader: React.FC = () => (
         placeholderTextColor={colors.grey_text}
         style={styles.searchInput}
       />
+      <TouchableOpacity style={styles.scanButton}>
+        <Ionicons name="scan-outline" size={24} color="#6A5AE0" />
+      </TouchableOpacity>
     </View>
   </LinearGradient>
 );
 
-// --- Component Con: Menu Grid ---
 const MenuGrid: React.FC = () => (
   <View style={styles.menuGridContainer}>
     <TextComponent
@@ -238,14 +255,11 @@ const MenuGrid: React.FC = () => (
         url={require("../../assets/cruise-ship.png")}
         bgColor="#EAF8FF"
       />
-      {/* Thêm một View rỗng để "cân" hàng cuối nếu cần,
-          hoặc điều chỉnh width của menuRow và item để nó tự dàn đều */}
-      <View style={{ width: 70, marginHorizontal: 8 }} /> {/* Item rỗng để căn 3 item thành 4 cột */}
+      <View style={{ width: 70, marginHorizontal: 8 }} />
     </View>
   </View>
 );
 
-// --- Component Con: Offers ---
 const OffersSection: React.FC = () => (
   <View style={styles.offersContainer}>
     <TextComponent
@@ -256,9 +270,8 @@ const OffersSection: React.FC = () => (
       styles={styles.sectionTitle}
     />
     <View style={styles.offersRow}>
-      {/* Thẻ bên trái */}
       <ImageBackground
-        source={require("../../assets/bg1.png")} // Thay bằng ảnh biển
+        source={require("../../assets/bg1.png")}
         style={styles.offerCardLeft}
         imageStyle={{ borderRadius: 20 }}
       >
@@ -266,7 +279,6 @@ const OffersSection: React.FC = () => (
         <TextComponent text="Cho chuyến đi đầu tiên!" size={14} color={colors.white} />
       </ImageBackground>
 
-      {/* Thẻ bên phải */}
       <LinearGradient
         colors={["#FFD67C", "#FFAE34"]}
         style={styles.offerCardRight}
@@ -276,22 +288,18 @@ const OffersSection: React.FC = () => (
         <TextComponent text="lên đến 200k" size={13} color="#4D3800" />
       </LinearGradient>
 
-      {/* Đồng tiền bay (tùy chọn) */}
       <Image source={require("../../assets/dollar.png")} style={styles.dollarIcon1} />
       <Image source={require("../../assets/dollar.png")} style={styles.dollarIcon2} />
     </View>
   </View>
 );
 
-// --- Component Con: Travel Slider ---
 interface TravelSectionProps {
   travels: travel[];
   onPressItem: (item: travel) => void;
 }
-// ...
 const TravelSection: React.FC<TravelSectionProps> = ({ travels, onPressItem }) => (
   <View style={styles.travelSectionContainer}>
-    {/* Tiêu đề */}
     <View style={styles.sectionHeader}>
       <TextComponent
         text="Những hành trình đang chờ bạn!"
@@ -305,15 +313,13 @@ const TravelSection: React.FC<TravelSectionProps> = ({ travels, onPressItem }) =
     </View>
     <Slider
       travels={travels}
-      RadiusTop={16} // Thẻ mới có bo tròn
-      RadiusBottom={16} // Thẻ mới có bo tròn
+      RadiusTop={16}
+      RadiusBottom={16}
       handleDetail={onPressItem}
     />
   </View>
 );
 
-
-// --- Component Con: Nút Chatbot Mới ---
 const DraggableChatbotButton: React.FC = () => {
   const { panHandlers, animatedStyle } = useDraggableFloatingButton();
 
@@ -321,7 +327,7 @@ const DraggableChatbotButton: React.FC = () => {
     <View style={styles.floatingButtonContainer}>
       <Animated.View style={animatedStyle} {...panHandlers}>
         <LinearGradient
-          colors={["#8A78F5", "#6A5AE0"]} // Gradient tím/xanh
+          colors={["#8A78F5", "#6A5AE0"]}
           style={styles.floatingButton}
         >
           <MaterialCommunityIcons name="robot-outline" size={32} color={colors.white} />
@@ -331,8 +337,6 @@ const DraggableChatbotButton: React.FC = () => {
   );
 };
 
-
-// --- Component Chính: HomeScreen ---
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { travels, isLoading, error } = useTravelData();
 
@@ -343,7 +347,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     [navigation]
   );
 
-  // Xử lý trạng thái Error và Loading
   if (error) {
     return (
       <View style={styles.centerContainer}>
@@ -359,13 +362,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   }
 
-  // Render UI chính
   return (
     <View style={styles.screenContainer}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
-        contentContainerStyle={{ paddingBottom: 100 }} // Thêm đệm dưới
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         <HomeHeader />
         <MenuGrid />
@@ -378,7 +380,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   );
 };
 
-// --- StyleSheet (Đã thiết kế lại toàn bộ) ---
+// --- StyleSheet ---
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
@@ -397,7 +399,7 @@ const styles = StyleSheet.create({
   // Header
   headerContainer: {
     paddingHorizontal: 20,
-    paddingTop: 50, // Khoảng cách cho status bar
+    paddingTop: 50,
     paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -408,6 +410,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  // --- ĐÃ THÊM STYLE CHO ICON ---
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  icon: {
+    marginLeft: 16,
+  },
+  // --- KẾT THÚC STYLE MỚI ---
   avatar: {
     width: 50,
     height: 50,
@@ -439,16 +450,23 @@ const styles = StyleSheet.create({
   },
   // Menu Grid
   menuGridContainer: {
-    paddingHorizontal: 10, // Giảm padding ngang để các item có thêm không gian
+    marginHorizontal: 20,
     marginTop: 25,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 15,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   sectionTitle: {
     marginBottom: 15,
-    paddingHorizontal: 10, // Thêm padding cho title nếu menuGridContainer có padding nhỏ
   },
   menuRow: {
     flexDirection: "row",
-    justifyContent: "space-between", // Dàn đều khoảng cách giữa các item
+    justifyContent: "space-between",
     marginBottom: 15,
   },
   // Offers
@@ -462,7 +480,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   offerCardLeft: {
-    flex: 0.65, // Chiếm 65%
+    flex: 0.65,
     height: 140,
     borderRadius: 20,
     padding: 15,
@@ -470,7 +488,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   offerCardRight: {
-    flex: 0.32, // Chiếm 32%
+    flex: 0.32,
     height: 140,
     borderRadius: 20,
     padding: 15,
@@ -510,7 +528,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    marginBottom: 5, // Giảm margin vì Slider có margin top
+    marginBottom: 5,
   },
   // Chatbot Button
   floatingButtonContainer: {
