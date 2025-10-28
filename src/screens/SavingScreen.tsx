@@ -40,11 +40,11 @@ type SavingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 // --- Header Component (Giữ nguyên) ---
 const SavingHeader: React.FC = () => (
-    <View style={styles.headerContainer}>
-        <View style={styles.headerButtonPlaceholder} />
-        <Text style={styles.headerTitle}>Đã lưu</Text>
-        <View style={styles.headerButtonPlaceholder} />
-    </View>
+  <View style={styles.headerContainer}>
+    <View style={styles.headerButtonPlaceholder} />
+    <Text style={styles.headerTitle}>Đã lưu</Text>
+    <View style={styles.headerButtonPlaceholder} />
+  </View>
 );
 
 // --- Custom Hook: Lấy dữ liệu Saved Travels (Giữ nguyên) ---

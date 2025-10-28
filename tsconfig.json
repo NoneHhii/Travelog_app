@@ -1,13 +1,8 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "types": [
-      "react",
-      "react-native"
-    ],
-    "lib": [
-      "esnext"
-    ],
+    "types": ["react", "react-native"],
+    "lib": ["esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
