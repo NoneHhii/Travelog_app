@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
-  // Pressable, // Bạn có thể dùng Pressable hoặc TouchableOpacity
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TextComponent } from "../components/TextComponent";
@@ -119,7 +118,7 @@ const useDraggableFloatingButton = () => {
           SCREEN_HEIGHT -
           FLOATING_BUTTON_POSITION_BOTTOM -
           BUTTON_SIZE -
-          80; 
+          80;
 
         const minX = -containerStartX;
         const maxX = SCREEN_WIDTH - containerStartX - BUTTON_SIZE;
@@ -146,7 +145,6 @@ const useDraggableFloatingButton = () => {
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
 
-// --- Component Con: Header (ĐÃ ĐƯỢC CẬP NHẬT) ---
 const HomeHeader: React.FC = () => (
   <LinearGradient
     colors={["#E0F7FF", "#FFFFFF"]}
@@ -167,13 +165,12 @@ const HomeHeader: React.FC = () => (
         />
       </View>
 
-      {/* === PHẦN ĐƯỢC GỘP VÀO === */}
       <View style={styles.headerIcons}>
         <TouchableOpacity>
           <Ionicons
             name="notifications-outline"
             size={28}
-            color="#0A2C4D" // Đổi màu cho hợp với text
+            color="#0A2C4D"
             style={styles.icon}
           />
         </TouchableOpacity>
@@ -181,13 +178,11 @@ const HomeHeader: React.FC = () => (
           <Ionicons
             name="chatbubble-ellipses-outline"
             size={28}
-            color="#0A2C4D" // Đổi màu cho hợp với text
+            color="#0A2C4D"
             style={styles.icon}
           />
         </TouchableOpacity>
       </View>
-      {/* === KẾT THÚC PHẦN GỘP === */}
-
     </View>
     <View style={styles.searchBarContainer}>
       <Ionicons
@@ -201,9 +196,6 @@ const HomeHeader: React.FC = () => (
         placeholderTextColor={colors.grey_text}
         style={styles.searchInput}
       />
-      <TouchableOpacity style={styles.scanButton}>
-        <Ionicons name="scan-outline" size={24} color="#6A5AE0" />
-      </TouchableOpacity>
     </View>
   </LinearGradient>
 );
