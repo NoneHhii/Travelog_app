@@ -8,7 +8,7 @@ import { View, StyleSheet, Platform } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { AccountScreen } from "../screens/AccountScreen";
-// import { ExploreScreen } from "../screens/ExploreScreen";
+import { ExploreScreen } from "../screens/ExploreScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -92,7 +92,7 @@ export const BottomTabs: React.FC = () => {
       />
       <Tab.Screen
         name="explore"
-        component={HomeScreen}
+        component={ExploreScreen}
         options={{
           tabBarLabel: "Khám phá",
         }}

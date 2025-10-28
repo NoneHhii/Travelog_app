@@ -11,11 +11,13 @@ import BookingTour from "../screens/BookingTour";
 import BookingInfor, { InforProps } from "../screens/BookingInfor";
 import Payment, { PaymentType } from "../screens/Payment";
 import { ChatbotScreen } from "../screens/ChatbotScreen";
+import { ExploreScreen } from "../screens/ExploreScreen";
 
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
   Intro: undefined;
+  Explore: undefined;
   Main: undefined;
   Search: undefined;
   TravelDetail: { travel: travel };
@@ -47,6 +49,13 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Explore"
+          component={ExploreScreen}
           options={{
             headerShown: false,
           }}

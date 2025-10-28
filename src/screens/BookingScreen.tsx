@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Added useEffect, useCallback
 import {
     Image,
     ScrollView,
@@ -6,33 +6,41 @@ import {
     TouchableOpacity,
     View,
     SafeAreaView,
-    Text, // Dùng Text của RN
+    Text,
+    ActivityIndicator, // Added ActivityIndicator
+    // FlatList, // Can remove if only using Slider
 } from "react-native";
-import { colors } from "../constants/colors"; // Vẫn dùng colors chung nếu cần
+import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native"; // Added useNavigation
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; // Added Navigation types
 
-// --- Màu sắc nhất quán (Đã đổi sang Xanh Dương) ---
-const lightBackground = "#F4F7FF";      // Nền chính (xanh rất nhạt)
-const themeColor = "#0194F3";          // Xanh dương chính (thay cho tím)
+// --- Import Types, API, and Components ---
+import travel, { RootStackParamList } from "./HomeScreen"; // Import types
+import { getAllTravel } from "../api/apiClient"; // Import API
+import { TravelItem } from "../components/TravelItem"; // Import TravelItem (if Slider uses it)
+import { Slider } from "../components/Slider"; // Import Slider component
+
+// --- Consistent Color Palette (Blue Theme) ---
+const lightBackground = "#F4F7FF";
+const themeColor = "#0194F3";
 const cardBackgroundColor = colors.white;
 const primaryTextColor = "#0A2C4D";
 const secondaryTextColor = colors.grey_text;
-const linkColor = themeColor;           // Link màu xanh dương chính
+const linkColor = themeColor;
+const activeTabColor = themeColor;
+const inactiveTabBackground = "#D6EEFF";
+const inactiveTabColor = "#006ADC";
+const fireIconBackgroundColor = '#FFEFE1';
+const fireIconColor = '#FF7D4A';
+const couponIconBackgroundColor = '#E0F1FF';
+const couponIconColor = '#4AB4FF';
 
-// Tab/Button Colors (Đã đổi sang Xanh Dương)
-const activeTabColor = themeColor;        // Tab active màu xanh dương
-const inactiveTabBackground = "#D6EEFF";  // Nền xanh dương rất nhạt cho tab inactive
-const inactiveTabColor = "#006ADC";     // Chữ xanh dương đậm hơn cho tab inactive
+// --- Navigation Type ---
+type BookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// Icon Background/Colors (Giữ nguyên cam/xanh hiện có)
-const fireIconBackgroundColor = '#FFEFE1'; // Nền cam nhạt cho icon lửa
-const fireIconColor = '#FF7D4A';         // Màu cam cho icon lửa
-const couponIconBackgroundColor = '#E0F1FF';// Nền xanh nhạt cho icon coupon
-const couponIconColor = '#4AB4FF';       // Màu xanh cho icon coupon
-
-
-// --- Component Con: Header (Giữ nguyên) ---
-const BoookingHeader: React.FC = () => (
+// --- Header Component ---
+const BookingHeader: React.FC = () => (
     <View style={styles.headerContainer}>
         <View style={styles.headerButtonPlaceholder} />
         <Text style={styles.headerTitle}>Đã đặt</Text>
@@ -40,14 +48,41 @@ const BoookingHeader: React.FC = () => (
     </View>
 );
 
+// --- Hook to fetch travel data (similar to SavingScreen) ---
+const useSuggestedTravels = () => {
+    const [suggestedTravels, setSuggestedTravels] = useState<travel[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                // Fetch all travels for suggestion for now
+                const data = await getAllTravel();
+                setSuggestedTravels(data);
+            } catch (err) {
+                console.error("Error fetching suggested travels:", err);
+                setError(err as Error);
+            } finally {
+                setIsLoading(false);
+            }
+        })();
+    }, []);
+
+    return { suggestedTravels, isLoading, error };
+};
+
 
 export const BookingScreen: React.FC = () => {
     const tabs = ["Vé máy bay", "Khách sạn", "Vui chơi", "Ngân hàng"];
-    const [selectedTab, setSelectedTab] = useState("Ngân hàng"); // Active theo ảnh
-    const suggestions = ["Khách sạn", "Hoạt động du lịch", "Tất cả"];
-    const [selectedSuggestion, setSelectedSuggestion] = useState("Khách sạn"); // Active theo ảnh
+    const [selectedTab, setSelectedTab] = useState("Ngân hàng");
 
-    // --- Component Con: Tab Button (Sử dụng màu xanh mới) ---
+    const navigation = useNavigation<BookingScreenNavigationProp>();
+    const { suggestedTravels, isLoading, error } = useSuggestedTravels(); // Fetch suggested travels
+
+    // --- Tab Button Component ---
     interface TabButtonProps {
         text: string;
         isActive: boolean;
@@ -57,14 +92,12 @@ export const BookingScreen: React.FC = () => {
         <TouchableOpacity
             style={[
                 styles.tabButtonBase,
-                // Sử dụng màu active/inactive mới
                 isActive ? styles.tabButtonActive : styles.tabButtonInactive
             ]}
             onPress={onPress}
         >
             <Text style={[
                 styles.tabButtonTextBase,
-                 // Sử dụng màu active/inactive mới
                 isActive ? styles.tabButtonTextActive : styles.tabButtonTextInactive
             ]}>
                 {text}
@@ -72,9 +105,17 @@ export const BookingScreen: React.FC = () => {
         </TouchableOpacity>
     );
 
+     // --- Handle Navigation to Detail ---
+     const handleDetail = useCallback(
+        (item: travel) => {
+            navigation.navigate("TravelDetail", { travel: item });
+        },
+        [navigation]
+    );
+
     return (
         <SafeAreaView style={styles.screenContainer}>
-            <BoookingHeader />
+            <BookingHeader />
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
@@ -124,7 +165,7 @@ export const BookingScreen: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* --- Suggestions Card --- */}
+                {/* --- Suggestions Card (Modified) --- */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                          <View style={[styles.iconPill, { backgroundColor: fireIconBackgroundColor}]}>
@@ -140,19 +181,24 @@ export const BookingScreen: React.FC = () => {
                             <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
                         </TouchableOpacity>
                     </View>
-                    <View style={styles.tabsContainer}>
-                        {suggestions.map((suggestion) => (
-                            <TabButton
-                                key={suggestion}
-                                text={suggestion}
-                                isActive={suggestion === selectedSuggestion}
-                                onPress={() => setSelectedSuggestion(suggestion)}
-                           />
-                        ))}
-                    </View>
-                     <TouchableOpacity style={styles.seeMoreLinkContainer}>
-                         <Text style={styles.seeMoreLinkText}>Xem thêm</Text>
-                     </TouchableOpacity>
+
+                    {/* --- REMOVED Tabs and See More Link --- */}
+                    {/* --- ADDED Horizontal Slider --- */}
+                     {isLoading ? (
+                        <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }}/>
+                    ) : error ? (
+                         <Text style={[styles.errorText, {marginTop: 10}]}>Lỗi tải gợi ý.</Text>
+                    ) : suggestedTravels.length > 0 ? (
+                        <Slider
+                            travels={suggestedTravels} // Use fetched data
+                            handleDetail={handleDetail} // Pass navigation handler
+                            RadiusTop={16}
+                            RadiusBottom={16}
+                        />
+                    ) : (
+                         <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
+                    )}
+                    {/* --- END Horizontal Slider --- */}
                 </View>
 
                 {/* --- Activity Card --- */}
@@ -285,7 +331,7 @@ const styles = StyleSheet.create({
     arrowIcon: {
         paddingLeft: 10,
     },
-    // Tabs Container
+    // Tabs Container (Only used in Coupon Card now)
     tabsContainer: {
         flexDirection: "row",
         flexWrap: 'wrap',
@@ -293,7 +339,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         justifyContent: 'flex-start',
     },
-    // Tab Button Styles (Đã cập nhật màu)
+    // Tab Button Styles
     tabButtonBase: {
         paddingVertical: 9,
         paddingHorizontal: 16,
@@ -302,11 +348,11 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
     },
     tabButtonActive: {
-        backgroundColor: activeTabColor, // Xanh dương chính
+        backgroundColor: activeTabColor,
         borderColor: activeTabColor,
     },
     tabButtonInactive: {
-        backgroundColor: inactiveTabBackground, // Xanh dương rất nhạt
+        backgroundColor: inactiveTabBackground,
         borderColor: inactiveTabBackground,
     },
     tabButtonTextBase: {
@@ -315,19 +361,19 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     tabButtonTextActive: {
-        color: colors.white, // Chữ trắng
+        color: colors.white,
     },
     tabButtonTextInactive: {
-        color: inactiveTabColor, // Chữ xanh dương đậm hơn
+        color: inactiveTabColor,
     },
-    // See More Link
+    // See More Link (Only used in Coupon Card now)
     seeMoreLinkContainer: {
         marginTop: 8,
         alignSelf: 'flex-start',
         paddingVertical: 5,
     },
     seeMoreLinkText: {
-        color: linkColor, // Xanh dương chính
+        color: linkColor,
         fontSize: 14,
         fontWeight: '500',
     },
@@ -344,5 +390,17 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: primaryTextColor,
         fontWeight: '500',
-    }
+    },
+    // Styles for Slider/Error/Loading in Suggestions Card
+     errorText: {
+         color: colors.red,
+         fontSize: 14,
+         textAlign: 'center',
+     },
+     noSuggestionText: {
+        fontSize: 14,
+        color: secondaryTextColor,
+        textAlign: 'center',
+        marginTop: 10,
+     }
 });
