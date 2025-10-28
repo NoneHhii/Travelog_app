@@ -8,25 +8,37 @@ import {
     SafeAreaView,
     Text, // Dùng Text của RN
 } from "react-native";
-// Bỏ TextComponent nếu không dùng nhất quán ở các màn hình trước
-// import { TextComponent } from "../components/TextComponent";
-import { ButtonComponent } from "../components/ButtonComponent"; // Vẫn dùng ButtonComponent cho các tab
-import { colors } from "../constants/colors";
+import { colors } from "../constants/colors"; // Vẫn dùng colors chung nếu cần
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-// --- Màu sắc nhất quán ---
-const lightBackground = "#F4F7FF"; // Nền xanh nhạt giống BookingInfor
-const activeTabColor = "#6A5AE0";   // Tím active
-const inactiveTabBackground = "#E8E6FF"; // Xanh/Tím rất nhạt cho nền inactive (điều chỉnh)
-const inactiveTabColor = "#575FCC";    // Xanh/Tím cho chữ inactive (điều chỉnh)
+// --- Màu sắc nhất quán (Đã đổi sang Xanh Dương) ---
+const lightBackground = "#F4F7FF";      // Nền chính (xanh rất nhạt)
+const themeColor = "#0194F3";          // Xanh dương chính (thay cho tím)
 const cardBackgroundColor = colors.white;
 const primaryTextColor = "#0A2C4D";
 const secondaryTextColor = colors.grey_text;
-const linkColor = colors.blue_splash;
+const linkColor = themeColor;           // Link màu xanh dương chính
+
+// Tab/Button Colors (Đã đổi sang Xanh Dương)
+const activeTabColor = themeColor;        // Tab active màu xanh dương
+const inactiveTabBackground = "#D6EEFF";  // Nền xanh dương rất nhạt cho tab inactive
+const inactiveTabColor = "#006ADC";     // Chữ xanh dương đậm hơn cho tab inactive
+
+// Icon Background/Colors (Giữ nguyên cam/xanh hiện có)
 const fireIconBackgroundColor = '#FFEFE1'; // Nền cam nhạt cho icon lửa
 const fireIconColor = '#FF7D4A';         // Màu cam cho icon lửa
 const couponIconBackgroundColor = '#E0F1FF';// Nền xanh nhạt cho icon coupon
 const couponIconColor = '#4AB4FF';       // Màu xanh cho icon coupon
+
+
+// --- Component Con: Header (Giữ nguyên) ---
+const BoookingHeader: React.FC = () => (
+    <View style={styles.headerContainer}>
+        <View style={styles.headerButtonPlaceholder} />
+        <Text style={styles.headerTitle}>Đã đặt</Text>
+        <View style={styles.headerButtonPlaceholder} />
+    </View>
+);
 
 
 export const BookingScreen: React.FC = () => {
@@ -35,7 +47,7 @@ export const BookingScreen: React.FC = () => {
     const suggestions = ["Khách sạn", "Hoạt động du lịch", "Tất cả"];
     const [selectedSuggestion, setSelectedSuggestion] = useState("Khách sạn"); // Active theo ảnh
 
-    // --- Component Con: Tab Button (Để dễ quản lý style hơn) ---
+    // --- Component Con: Tab Button (Sử dụng màu xanh mới) ---
     interface TabButtonProps {
         text: string;
         isActive: boolean;
@@ -45,12 +57,14 @@ export const BookingScreen: React.FC = () => {
         <TouchableOpacity
             style={[
                 styles.tabButtonBase,
+                // Sử dụng màu active/inactive mới
                 isActive ? styles.tabButtonActive : styles.tabButtonInactive
             ]}
             onPress={onPress}
         >
             <Text style={[
                 styles.tabButtonTextBase,
+                 // Sử dụng màu active/inactive mới
                 isActive ? styles.tabButtonTextActive : styles.tabButtonTextInactive
             ]}>
                 {text}
@@ -60,6 +74,7 @@ export const BookingScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.screenContainer}>
+            <BoookingHeader />
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
@@ -140,7 +155,7 @@ export const BookingScreen: React.FC = () => {
                      </TouchableOpacity>
                 </View>
 
-                {/* --- Activity Card (ĐÃ THÊM LẠI) --- */}
+                {/* --- Activity Card --- */}
                  <View style={styles.card}>
                      <Text style={styles.cardTitle}>
                          Tất cả các hoạt động
@@ -166,7 +181,6 @@ export const BookingScreen: React.FC = () => {
                          <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
                      </TouchableOpacity>
                  </View>
-                 {/* --- KẾT THÚC PHẦN ACTIVITY --- */}
 
             </ScrollView>
         </SafeAreaView>
@@ -182,21 +196,44 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContentContainer: {
-        paddingVertical: 20,
+        paddingVertical: 15,
         paddingHorizontal: 15,
+        paddingBottom: 30,
     },
+    // Header
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        backgroundColor: colors.white,
+        paddingHorizontal: 15,
+        paddingTop: 50,
+        paddingBottom: 15,
+        borderBottomColor: colors.light_Blue,
+        borderBottomWidth: 1,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: primaryTextColor,
+    },
+    headerButtonPlaceholder: {
+        width: 40,
+    },
+    // Card General Style
     card: {
         backgroundColor: cardBackgroundColor,
         borderRadius: 12,
         padding: 15,
         marginBottom: 15,
-        elevation: 2,
-        shadowColor: "#999",
-        shadowOffset: { width: 0, height: 1 },
+        elevation: 1.5,
+        shadowColor: "#AAB2C8",
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    // Empty State
+    // Empty State Card
     emptyStateImage: {
         width: 130,
         height: 130,
@@ -218,7 +255,7 @@ const styles = StyleSheet.create({
         color: secondaryTextColor,
         paddingHorizontal: 10,
     },
-    // Card Header
+    // Card Header (Coupon, Suggestions)
     cardHeader: {
         flexDirection: "row",
         alignItems: "center",
@@ -235,7 +272,7 @@ const styles = StyleSheet.create({
     cardHeaderText: {
         flex: 1,
     },
-     cardTitle: {
+    cardTitle: {
         fontSize: 16,
         fontWeight: '600',
         color: primaryTextColor,
@@ -256,7 +293,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         justifyContent: 'flex-start',
     },
-    // Tab Button Styles
+    // Tab Button Styles (Đã cập nhật màu)
     tabButtonBase: {
         paddingVertical: 9,
         paddingHorizontal: 16,
@@ -265,11 +302,11 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
     },
     tabButtonActive: {
-        backgroundColor: activeTabColor,
+        backgroundColor: activeTabColor, // Xanh dương chính
         borderColor: activeTabColor,
     },
     tabButtonInactive: {
-        backgroundColor: inactiveTabBackground,
+        backgroundColor: inactiveTabBackground, // Xanh dương rất nhạt
         borderColor: inactiveTabBackground,
     },
     tabButtonTextBase: {
@@ -278,10 +315,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     tabButtonTextActive: {
-        color: colors.white,
+        color: colors.white, // Chữ trắng
     },
     tabButtonTextInactive: {
-        color: inactiveTabColor,
+        color: inactiveTabColor, // Chữ xanh dương đậm hơn
     },
     // See More Link
     seeMoreLinkContainer: {
@@ -290,22 +327,22 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
     },
     seeMoreLinkText: {
-        color: linkColor,
+        color: linkColor, // Xanh dương chính
         fontSize: 14,
         fontWeight: '500',
     },
-    // Activity Card Styles (ĐÃ THÊM LẠI)
+    // Activity Card Styles
     activityItem: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 15, // Padding dọc
-        borderBottomColor: colors.light_Blue, // Màu đường kẻ nhạt
+        paddingVertical: 15,
+        borderBottomColor: colors.light_Blue,
         borderBottomWidth: 1,
     },
-    activityText: { // Style cho text trong activity item
-        flex: 1, // Để đẩy icon mũi tên sang phải
-        fontSize: 15, // Kích thước chữ
-        color: primaryTextColor, // Màu chữ đậm hơn
-        fontWeight: '500', // Đậm vừa
+    activityText: {
+        flex: 1,
+        fontSize: 15,
+        color: primaryTextColor,
+        fontWeight: '500',
     }
 });
