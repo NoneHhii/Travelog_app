@@ -11,18 +11,19 @@ import TravelDetail from "../screens/TravelDetail";
 import BookingTour from "../screens/BookingTour";
 import BookingInfor, { InforProps } from "../screens/BookingInfor";
 import Payment, { PaymentType } from "../screens/Payment";
+import { ChatbotScreen } from "../screens/ChatbotScreen";
 
 export type RootStackParamList = {
-    Splash: undefined,
-    Home: undefined,
-    Intro: undefined,
-    Main: undefined,
-    Search: undefined,
-    TravelDetail: {travel: travel},
-    BookingTour: {travel: travel, destinationName: string},
-    BookingInfor: {props: InforProps},
-    Payment: {payment: PaymentType}
-}
+  Splash: undefined;
+  Home: undefined;
+  Intro: undefined;
+  Main: undefined;
+  Search: undefined;
+  TravelDetail: { travel: travel };
+  BookingTour: { travel: travel; destinationName: string };
+  BookingInfor: { props: InforProps };
+  Payment: { payment: PaymentType };
+};
 
 const Stack = createStackNavigator();
 
@@ -50,20 +51,20 @@ export const RootNavigator: React.FC = () => {
             header: () => <ToolBarComponent bill={true} />,
           }}
         />
-        <Stack.Screen   
-            name="Main" 
-            component={BottomTabs} 
-            options={{
-                headerShown: false 
-            }}
+        <Stack.Screen
+          name="Main"
+          component={BottomTabs}
+          options={{
+            headerShown: false,
+          }}
         />
 
         <Stack.Screen
-            name="Intro"
-            component={IntroPage}
-            options={{
-                headerShown: false 
-            }}
+          name="Intro"
+          component={IntroPage}
+          options={{
+            headerShown: false,
+          }}
         />
 
         <Stack.Screen
@@ -105,7 +106,14 @@ export const RootNavigator: React.FC = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="Chatbot"
+          component={ChatbotScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
-  )
-}
+  );
+};
