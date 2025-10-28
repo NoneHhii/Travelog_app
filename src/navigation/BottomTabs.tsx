@@ -7,6 +7,7 @@ import { SavingScreen } from "../screens/SavingScreen";
 import { Image, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { AccountScreen } from "../screens/AccountScreen";
+import { ExploreScreen } from "../screens/ExploreScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -79,7 +80,7 @@ export const BottomTabs: React.FC = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Explore" component={HomeScreen} />
+      <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen
         name="Bookings"
         component={BookingScreen}
