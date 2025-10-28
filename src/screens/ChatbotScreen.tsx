@@ -19,9 +19,21 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import ChatMessage from "../components/ChatMessage";
+import { useNavigation } from "@react-navigation/native"; // Thêm
+import { Ionicons } from "@expo/vector-icons"; // Thêm
+// import ChatMessage from "../components/ChatMessage"; // Đã XÓA
 import TypingIndicator from "../components/TypingIndicator";
 import ChatbotIcon from "../components/ChatbotIcon";
+
+// --- Bảng màu được tinh chỉnh ---
+const primaryBlue = "#0194F3";
+const lightBlueBackground = "#F0F8FF";
+const whiteBackground = "#FFFFFF";
+const darkText = "#1A2C2C";
+const greyText = "#718096";
+const userBubbleBackground = primaryBlue;
+const buttonDisabledBackground = "#CBD5E0";
+const borderColorLight = "#E2E8F0";
 
 interface ChatMessageType {
   hideInChat?: boolean;
@@ -42,17 +54,64 @@ interface Tour {
   itinerary: { day: number; title: string; details: string }[];
 }
 
+// --- Component ChatMessage (Định nghĩa nội tuyến, đã tinh chỉnh) ---
+const ChatMessage: React.FC<{ chat: ChatMessageType }> = ({ chat }) => {
+  if (chat.hideInChat) return null;
+
+  const isUser = chat.role === "user";
+
+  return (
+    <View
+      style={[
+        styles.messageWrapperBase,
+        isUser ? styles.messageWrapperUser : styles.messageWrapperBot,
+      ]}
+    >
+      {!isUser && (
+        <View style={styles.iconContainer}>
+          <View style={styles.iconCircle}>
+            <ChatbotIcon width={18} height={18} color="#fff" />
+          </View>
+        </View>
+      )}
+
+      <View
+        style={[
+          styles.messageBubbleBase,
+          isUser ? styles.userMessage : styles.botMessage,
+          chat.isError ? styles.errorMessage : null,
+        ]}
+      >
+        <Text
+          style={[
+            styles.messageTextBase,
+            isUser ? styles.messageTextUser : styles.messageTextBot,
+          ]}
+        >
+          {chat.text}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
 export const ChatbotScreen: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
   const [message, setMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // --- Logic Keyboard từ code gốc CỦA BẠN ---
   const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // ------------------------------------
+
   const flatListRef = useRef<FlatList<ChatMessageType>>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const insets = useSafeAreaInsets();
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [tours, setTours] = useState([]);
+  const navigation = useNavigation(); // Thêm
 
+  // --- Logic Keyboard từ code gốc CỦA BẠN ---
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -78,6 +137,7 @@ export const ChatbotScreen: React.FC = () => {
       keyboardWillHide.remove();
     };
   }, []);
+  // ------------------------------------
 
   useEffect(() => {
     setChatHistory([
@@ -104,16 +164,16 @@ export const ChatbotScreen: React.FC = () => {
               .join("; ");
 
             return `
-                      === ${tour.title} ===
-                      📍 Khởi hành từ: ${tour.departurePoint}
-                      🕒 Thời lượng: ${days} ngày ${nights} đêm
-                      💰 Giá: ${tour.price.toLocaleString("vi-VN")}₫
-                      ⭐ Đánh giá: ${tour.averageRating}/5 (${
+                            === ${tour.title} ===
+                            📍 Khởi hành từ: ${tour.departurePoint}
+                            🕒 Thời lượng: ${days} ngày ${nights} đêm
+                            💰 Giá: ${tour.price.toLocaleString("vi-VN")}₫
+                            ⭐ Đánh giá: ${tour.averageRating}/5 (${
               tour.reviewCount
             } lượt)
-                      📖 Mô tả: ${tour.description}
-                      🗓️ Lịch trình: ${itineraryText}
-                    `;
+                            📖 Mô tả: ${tour.description}
+                            🗓️ Lịch trình: ${itineraryText}
+                        `;
           })
           .join("\n\n");
         setChatHistory((prev) => [
@@ -135,7 +195,9 @@ export const ChatbotScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    flatListRef.current?.scrollToEnd({ animated: true });
+    if (chatHistory.length > 0) {
+        flatListRef.current?.scrollToEnd({ animated: true });
+    }
   }, [chatHistory]);
 
   const generateBotResponse = async (history: ChatMessageType[]) => {
@@ -175,6 +237,7 @@ export const ChatbotScreen: React.FC = () => {
     }
   };
 
+  // --- Logic handleSend từ code gốc CỦA BẠN ---
   const handleSend = () => {
     if (!message.trim()) return;
 
@@ -187,30 +250,63 @@ export const ChatbotScreen: React.FC = () => {
     setMessage("");
     generateBotResponse(newHistory);
   };
+  // ------------------------------------
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Text style={styles.headerTitle}>Travel Assistant</Text>
-        <Text style={styles.headerSubtitle}>Chúng tôi sẵn sàng giúp bạn</Text>
+      <StatusBar barStyle="dark-content" backgroundColor={whiteBackground} />
+      {/* --- Header Đẹp (Đã thêm nút back) --- */}
+      <View
+        style={[styles.header, { paddingTop: insets.top + 10 }]}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={28} color={darkText} />
+        </TouchableOpacity>
+
+        <View style={styles.headerTitleContainer}>
+          <View style={styles.headerTitleRow}>
+            <ChatbotIcon
+              width={24}
+              height={24}
+              color={primaryBlue}
+              style={styles.headerIcon}
+            />
+            <Text style={styles.headerTitle}>Travel Assistant</Text>
+          </View>
+          <Text style={styles.headerSubtitle}>Chúng tôi sẵn sàng giúp bạn</Text>
+        </View>
+
+        <View style={styles.headerRightPlaceholder} />
       </View>
+      {/* ------------------------------------ */}
+
       <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        // --- Logic Keyboard từ code gốc CỦA BẠN ---
         keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
       >
         <FlatList
           ref={flatListRef}
           data={chatHistory}
           keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => <ChatMessage chat={item} />}
+          renderItem={({ item }) => <ChatMessage chat={item} />} // Dùng component nội tuyến
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyState}>
+              <ChatbotIcon
+                width={60}
+                height={60}
+                color={greyText}
+                style={{ marginBottom: 15 }}
+              />
               <Text style={styles.emptyStateText}>
-                Chào mừng! Hãy đặt câu hỏi để bắt đầu trò chuyện
+                Chào mừng bạn đến với Travel Assistant!{"\n"}Hãy đặt câu hỏi về
+                các tour du lịch, điểm đến, hoặc bất cứ điều gì bạn muốn biết.
               </Text>
             </View>
           }
@@ -220,23 +316,30 @@ export const ChatbotScreen: React.FC = () => {
           <Animated.View
             style={[styles.loadingContainer, { opacity: fadeAnim }]}
           >
-            <View style={styles.messageWrapper}>
+            <View
+              style={[
+                styles.messageWrapperBase,
+                styles.messageWrapperBot,
+              ]}
+            >
               <View style={styles.iconContainer}>
                 <View style={styles.iconCircle}>
-                  <ChatbotIcon width={20} height={20} color="#fff" />
+                  <ChatbotIcon width={18} height={18} color="#fff" />
                 </View>
               </View>
-              <View style={styles.botMessage}>
-                <TypingIndicator size={10} color="#666" />
+              <View style={[styles.messageBubbleBase, styles.botMessage]}>
+                <TypingIndicator size={10} color={darkText} />
               </View>
             </View>
           </Animated.View>
         )}
 
+        {/* --- Input Container (Kết hợp Style đẹp + Logic gốc) --- */}
         <View
           style={[
-            styles.inputContainer,
+            styles.inputContainer, // Style đẹp
             {
+              // Logic Keyboard từ code gốc CỦA BẠN
               paddingBottom: keyboardVisible ? 0 : Math.max(insets.bottom, 12),
               height: 90,
               justifyContent: "center",
@@ -245,11 +348,11 @@ export const ChatbotScreen: React.FC = () => {
           ]}
         >
           <TextInput
-            style={styles.input}
+            style={styles.input} // Style đẹp
             value={message}
             onChangeText={setMessage}
             placeholder="Nhập câu hỏi của bạn..."
-            placeholderTextColor="#999"
+            placeholderTextColor={greyText}
             multiline
             maxLength={500}
             editable={!isLoading}
@@ -257,7 +360,7 @@ export const ChatbotScreen: React.FC = () => {
           <TouchableOpacity
             onPress={handleSend}
             style={[
-              styles.sendButton,
+              styles.sendButton, // Style đẹp
               (!message.trim() || isLoading) && styles.sendButtonDisabled,
             ]}
             disabled={!message.trim() || isLoading}
@@ -265,37 +368,63 @@ export const ChatbotScreen: React.FC = () => {
             <Text style={styles.sendButtonText}>Gửi</Text>
           </TouchableOpacity>
         </View>
+        {/* ------------------------------------ */}
+        
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
+// --- StyleSheet Đẹp ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: lightBlueBackground,
   },
   header: {
-    backgroundColor: "#fff",
+    backgroundColor: whiteBackground,
     paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5EA",
+    paddingHorizontal: 15,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borderColorLight,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    marginLeft: -5,
+  },
+  headerTitleContainer: {
+    alignItems: "center",
+  },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  headerIcon: {
+    marginRight: 10,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: "700",
-    color: "#1C1C1E",
-    marginBottom: 2,
+    fontWeight: "800",
+    color: darkText,
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: "#8E8E93",
+    fontSize: 14,
+    color: greyText,
+  },
+  headerRightPlaceholder: {
+    width: 40,
   },
   chatContainer: {
     flex: 1,
@@ -308,103 +437,140 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
+    paddingVertical: 80,
+    paddingHorizontal: 30,
   },
   emptyStateText: {
-    fontSize: 16,
-    color: "#8E8E93",
+    fontSize: 15,
+    color: greyText,
     textAlign: "center",
-    paddingHorizontal: 40,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   loadingContainer: {
     paddingVertical: 6,
     marginHorizontal: 15,
     marginBottom: 10,
   },
-  messageWrapper: {
+  messageWrapperBase: {
     flexDirection: "row",
     alignItems: "flex-end",
     marginVertical: 6,
     maxWidth: "85%",
   },
+  messageWrapperBot: {
+    alignSelf: "flex-start",
+  },
+  messageWrapperUser: {
+    alignSelf: "flex-end",
+  },
   iconContainer: {
-    marginHorizontal: 4,
+    marginRight: 8,
     marginBottom: 2,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#007AFF",
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: primaryBlue,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#007AFF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  botMessage: {
-    backgroundColor: "#E5E5EA",
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomLeftRadius: 4,
-    shadowColor: "#000",
+    shadowColor: primaryBlue,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
   },
+  messageBubbleBase: {
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  botMessage: {
+    backgroundColor: whiteBackground,
+    borderBottomLeftRadius: 6,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  userMessage: {
+    backgroundColor: userBubbleBackground,
+    borderBottomRightRadius: 6,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+  },
+  errorMessage: {
+    backgroundColor: "#FFEBEE",
+    borderColor: "#EF5350",
+    borderWidth: 1,
+  },
+  messageTextBase: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  messageTextBot: {
+    color: darkText,
+  },
+  messageTextUser: {
+    color: whiteBackground,
+  },
   inputContainer: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    paddingTop: 12,
-    paddingHorizontal: 12,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E5EA",
+    // alignItems: "flex-end", // Bị ghi đè bởi inline style
+    paddingTop: 12, // Điều chỉnh padding
+    paddingHorizontal: 15,
+    backgroundColor: whiteBackground,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: borderColorLight,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: { width: 0, height: -1 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowRadius: 2,
+    elevation: 3,
   },
   input: {
     flex: 1,
-    backgroundColor: "#F2F2F7",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#1C1C1E",
-    maxHeight: 100,
-    textAlignVertical: "top",
+    backgroundColor: lightBlueBackground,
+    borderRadius: 25,
+    paddingHorizontal: 18,
+    paddingVertical: 10, // Điều chỉnh padding
+    fontSize: 16,
+    color: darkText,
+    maxHeight: 100, // Giữ lại từ code gốc
+    // minHeight: 45, // Bỏ, để container `height: 90` xử lý
+    textAlignVertical: "top", // Giữ lại từ code gốc
+    marginRight: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: borderColorLight,
   },
   sendButton: {
-    marginLeft: 10,
-    backgroundColor: "#007AFF",
+    backgroundColor: primaryBlue,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 25,
     minWidth: 60,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#007AFF",
+    shadowColor: primaryBlue,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+    height: 45, // Đặt chiều cao cố định cho nút
   },
   sendButtonDisabled: {
-    backgroundColor: "#C7C7CC",
+    backgroundColor: buttonDisabledBackground,
     shadowOpacity: 0,
     elevation: 0,
   },
   sendButtonText: {
-    color: "#fff",
+    color: whiteBackground,
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: 16,
   },
 });
