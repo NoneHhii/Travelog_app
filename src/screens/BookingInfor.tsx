@@ -11,7 +11,8 @@ import {
   TouchableOpacity,
   View,
   SafeAreaView, // Thêm
-  Text, // Dùng Text của React Native
+  Text,
+  Alert, // Dùng Text của React Native
 } from "react-native";
 import { colors } from "../constants/colors";
 import createAcronym from "../utils/acronym";
@@ -19,8 +20,10 @@ import { Picker } from "@react-native-picker/picker";
 import DatePickerInput from "../components/DatePickerInput";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { PaymentType } from "./Payment";
-import { RootStackParamList } from "./HomeScreen"; // Giả sử InforProps ở đây
+import travel from "./HomeScreen"; // Giả sử InforProps ở đây
 import { Ionicons } from "@expo/vector-icons";
+import { StaticParamList } from "@react-navigation/native";
+import { RootStackParamList } from "../navigation/RootNavigator";
 
 // --- Types ---
 export interface Guest {
@@ -53,16 +56,22 @@ export interface Booking {
   totalPrice: number;
   tourID: string;
   travelDate: string;
+  contactEmail: string,
+  contactName: string,
+  contactPhone: string,
 }
 
-// Đồng bộ ParamList
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  BookingInfor: { props: InforProps };
-  TravelDetail: { travel: travel };
-  Payment: { payment: PaymentType };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "BookingInfor">;
+export interface InforProps {
+    tourID: string,
+    totalPrice: number,
+    AdultNum: number,
+    Child: number,
+    travelDate: string,
+    departure: string,
+    destination: string,
+}
+
+type StackProps = NativeStackScreenProps<RootStackParamList, "BookingInfor">;
 
 // --- Component Con: Header ---
 interface BookingHeaderProps {
@@ -278,6 +287,14 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
     );
   }, []);
 
+  const checkEmpty = () => {
+    if(contactEmail.trim() === "" || contactName.trim() === "" || contactPhone.trim() === "") return false;
+    
+    const existEmp = allGuests.find(guest => guest.fullName.trim() === "" || guest.birthDate.trim() === "" );
+    if(existEmp) return false;
+    return true;
+  }
+
   const handleSubmit = () => {
     const payment: PaymentType = {
       infor: props,
@@ -288,7 +305,11 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
         phone: contactPhone,
       },
     };
-    navigation.navigate("Payment", { payment });
+    if(checkEmpty()) {
+      navigation.navigate("Payment", { payment });
+    } else {
+      Alert.alert("Vui lòng nhập đầy đủ thông tin");
+    }
   };
 
   return (

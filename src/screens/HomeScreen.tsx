@@ -24,6 +24,7 @@ import {
 } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { RootStackParamList } from "../navigation/RootNavigator";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const BUTTON_SIZE = 65;
@@ -39,7 +40,7 @@ export interface Itinerary {
 export default interface travel {
   id: string;
   departurePoint: string;
-  destinationID: string;
+  destinationIDs: string[];
   images: string[];
   description: string;
   itinerary: Itinerary[];
@@ -49,17 +50,11 @@ export default interface travel {
   reviewCount: number;
 }
 
-export type RootStackParamList = {
-  Home: undefined;
-  TravelDetail: { travel: travel };
-  Chatbot: undefined;
-};
-
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const useTravelData = () => {
-  const [travels, setTravels] = useState<travel[]>([]);
+const useTravelData = () => { 
+  const [travels, setTravels] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -507,7 +502,7 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     resizeMode: "contain",
-    top: 150,
+    top: 130,
     left: "50%",
     zIndex: 1,
   },

@@ -13,13 +13,14 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from "react-native";
-import travel, { RootStackParamList } from "./HomeScreen";
+import travel from "./HomeScreen";
 import { getAllDestinations, getReviews, getUsers } from "../api/apiClient";
 import { colors } from "../constants/colors";
 import ReviewComponent from "../components/ReviewComponent";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { TextComponent } from "../components/TextComponent";
+import { RootStackParamList } from "../navigation/RootNavigator";
 
 export interface Review {
   comment: string;
@@ -40,16 +41,12 @@ export interface Destination {
   name: string;
 }
 
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  TravelDetail: { travel: travel };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "TravelDetail">;
+type StackProps = NativeStackScreenProps<RootStackParamList, "TravelDetail">;
 
 const useTravelDetails = () => {
-  const [destinations, setDestinations] = React.useState<Destination[]>([]);
-  const [allReviews, setAllReviews] = React.useState<Review[]>([]);
-  const [users, setUsers] = React.useState<User[]>([]);
+  const [destinations, setDestinations] = React.useState<any[]>([]);
+  const [allReviews, setAllReviews] = React.useState<any[]>([]);
+  const [users, setUsers] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
 

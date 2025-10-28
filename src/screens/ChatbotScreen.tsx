@@ -117,7 +117,7 @@ export const ChatbotScreen: React.FC = () => {
                     `;
           })
           .join("\n\n");
-        console.log(tourSummary);
+        // console.log(tourSummary);
         setChatHistory((prev) => [
           ...prev,
           {

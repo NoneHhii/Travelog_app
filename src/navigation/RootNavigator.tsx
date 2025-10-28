@@ -22,6 +22,7 @@ export type RootStackParamList = {
   BookingTour: { travel: travel; destinationName: string };
   BookingInfor: { props: InforProps };
   Payment: { payment: PaymentType };
+  Chatbot: undefined;
 };
 
 const Stack = createStackNavigator();
