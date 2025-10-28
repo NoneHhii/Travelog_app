@@ -8,11 +8,13 @@ import {
     SafeAreaView,
     Text,
     ActivityIndicator,
+    FlatList,
 } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
 import travel, { RootStackParamList } from "./HomeScreen";
 import { getAllTravel } from "../api/apiClient";
 import { TravelItem } from "../components/TravelItem";
@@ -69,7 +71,7 @@ const useSuggestedTravels = () => {
 
 export const BookingScreen: React.FC = () => {
     const tabs = ["Vé máy bay", "Khách sạn", "Vui chơi", "Ngân hàng"];
-    const [selectedTab, setSelectedTab] = useState("Ngân hàng");
+    const [selectedTab, setSelectedTab] = useState("Vé máy bay");
 
     const navigation = useNavigation<BookingScreenNavigationProp>();
     const { suggestedTravels, isLoading, error } = useSuggestedTravels();
@@ -138,41 +140,47 @@ export const BookingScreen: React.FC = () => {
                             <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
                         </TouchableOpacity>
                     </View>
-                    <View style={styles.tabsContainer}>
-                        {tabs.map((tab) => (
-                           <TabButton
-                                key={tab}
-                                text={tab}
-                                isActive={tab === selectedTab}
-                                onPress={() => setSelectedTab(tab)}
-                           />
-                        ))}
-                    </View>
+                    
+                    <FlatList
+                        style={styles.tabsContainer}
+                        data={tabs}
+                        renderItem={({ item }) => (
+                            <TabButton
+                                text={item}
+                                isActive={item === selectedTab}
+                                onPress={() => setSelectedTab(item)}
+                            />
+                        )}
+                        keyExtractor={(item) => item}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                    />
+                    
                     <TouchableOpacity style={styles.seeMoreLinkContainer}>
-                         <Text style={styles.seeMoreLinkText}>Xem thêm ưu đãi</Text>
+                        <Text style={styles.seeMoreLinkText}>Xem thêm ưu đãi</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
-                         <View style={[styles.iconPill, { backgroundColor: fireIconBackgroundColor}]}>
+                        <View style={[styles.iconPill, { backgroundColor: fireIconBackgroundColor }]}>
                             <MaterialCommunityIcons name="fire" size={20} color={fireIconColor} />
-                         </View>
+                        </View>
                         <View style={styles.cardHeaderText}>
-                             <Text style={styles.cardTitle}>Đề xuất tuyệt vời</Text>
-                             <Text style={styles.cardSubtitle}>
-                                 Gợi ý hoàn hảo cho chuyến đi trọn vẹn
-                             </Text>
+                            <Text style={styles.cardTitle}>Đề xuất tuyệt vời</Text>
+                            <Text style={styles.cardSubtitle}>
+                                Gợi ý hoàn hảo cho chuyến đi trọn vẹn
+                            </Text>
                         </View>
                         <TouchableOpacity style={styles.arrowIcon}>
                             <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
                         </TouchableOpacity>
                     </View>
 
-                     {isLoading ? (
-                        <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }}/>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }} />
                     ) : error ? (
-                         <Text style={[styles.errorText, {marginTop: 10}]}>Lỗi tải gợi ý.</Text>
+                        <Text style={[styles.errorText, { marginTop: 10 }]}>Lỗi tải gợi ý.</Text>
                     ) : suggestedTravels.length > 0 ? (
                         <Slider
                             travels={suggestedTravels}
@@ -181,35 +189,35 @@ export const BookingScreen: React.FC = () => {
                             RadiusBottom={16}
                         />
                     ) : (
-                         <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
+                        <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
                     )}
                 </View>
 
-                 <View style={styles.card}>
-                     <Text style={styles.cardTitle}>
-                         Tất cả các hoạt động
-                     </Text>
-                     <TouchableOpacity style={styles.activityItem}>
-                         <Text style={styles.activityText}>
-                             Danh sách mua hàng của bạn
-                         </Text>
-                         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
-                     </TouchableOpacity>
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>
+                        Tất cả các hoạt động
+                    </Text>
+                    <TouchableOpacity style={styles.activityItem}>
+                        <Text style={styles.activityText}>
+                            Danh sách mua hàng của bạn
+                        </Text>
+                        <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
+                    </TouchableOpacity>
 
-                     <TouchableOpacity style={styles.activityItem}>
-                         <Text style={styles.activityText}>
-                             Khoản hoàn tiền của bạn
-                         </Text>
-                          <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
-                     </TouchableOpacity>
+                    <TouchableOpacity style={styles.activityItem}>
+                        <Text style={styles.activityText}>
+                            Khoản hoàn tiền của bạn
+                        </Text>
+                        <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
+                    </TouchableOpacity>
 
-                     <TouchableOpacity style={[styles.activityItem, { borderBottomWidth: 0 }]}>
-                         <Text style={styles.activityText}>
-                             Đánh giá trải nghiệm gần đây
-                         </Text>
-                         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
-                     </TouchableOpacity>
-                 </View>
+                    <TouchableOpacity style={[styles.activityItem, { borderBottomWidth: 0 }]}>
+                        <Text style={styles.activityText}>
+                            Đánh giá trải nghiệm gần đây
+                        </Text>
+                        <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
+                    </TouchableOpacity>
+                </View>
 
             </ScrollView>
         </SafeAreaView>
@@ -229,7 +237,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingBottom: 30,
     },
-    // Header
     headerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -250,7 +257,6 @@ const styles = StyleSheet.create({
     headerButtonPlaceholder: {
         width: 40,
     },
-    // Card General Style
     card: {
         backgroundColor: cardBackgroundColor,
         borderRadius: 12,
@@ -262,7 +268,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    // Empty State Card
     emptyStateImage: {
         width: 130,
         height: 130,
@@ -284,7 +289,6 @@ const styles = StyleSheet.create({
         color: secondaryTextColor,
         paddingHorizontal: 10,
     },
-    // Card Header (Coupon, Suggestions)
     cardHeader: {
         flexDirection: "row",
         alignItems: "center",
@@ -314,21 +318,16 @@ const styles = StyleSheet.create({
     arrowIcon: {
         paddingLeft: 10,
     },
-    // Tabs Container (Only used in Coupon Card now)
     tabsContainer: {
-        flexDirection: "row",
-        flexWrap: 'wrap',
-        gap: 10,
         marginBottom: 10,
-        justifyContent: 'flex-start',
     },
-    // Tab Button Styles
     tabButtonBase: {
         paddingVertical: 9,
         paddingHorizontal: 16,
         borderRadius: 20,
         borderWidth: 1,
         borderColor: 'transparent',
+        marginRight: 10,
     },
     tabButtonActive: {
         backgroundColor: activeTabColor,
@@ -349,7 +348,6 @@ const styles = StyleSheet.create({
     tabButtonTextInactive: {
         color: inactiveTabColor,
     },
-    // See More Link (Only used in Coupon Card now)
     seeMoreLinkContainer: {
         marginTop: 8,
         alignSelf: 'flex-start',
@@ -360,7 +358,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
     },
-    // Activity Card Styles
     activityItem: {
         flexDirection: "row",
         alignItems: "center",
@@ -374,16 +371,15 @@ const styles = StyleSheet.create({
         color: primaryTextColor,
         fontWeight: '500',
     },
-    // Styles for Slider/Error/Loading in Suggestions Card
-     errorText: {
-         color: colors.red,
-         fontSize: 14,
-         textAlign: 'center',
-     },
-     noSuggestionText: {
+    errorText: {
+        color: colors.red,
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    noSuggestionText: {
         fontSize: 14,
         color: secondaryTextColor,
         textAlign: 'center',
         marginTop: 10,
-     }
+    }
 });
