@@ -15,4 +15,8 @@ export const colors = {
     themeGra2: "#0464B6",
     light: "#EBEEF0",
     light_Blue: '#b6dbf8',
+    lightBackground: "#F4F7FF",
+    themeColor: "#0194F3",
+    primaryTextColor: "#0A2C4D",
+    priorityGradientColors: ["#007AFF", "#0052D4"],
 }

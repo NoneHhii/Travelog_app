@@ -1,6 +1,6 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { createRef, useEffect, useState, useRef } from "react";
-import {Dimensions, FlatList, Image, StyleSheet, View, ViewToken} from 'react-native';
+import {Dimensions, FlatList, Image, ScrollView, StyleSheet, View, ViewToken} from 'react-native';
 import { colors } from "../constants/colors";
 import { RootStackParamList } from "../navigation/RootNavigator";
 import Animated, {
@@ -16,8 +16,16 @@ import Animated, {
 import { TextComponent } from "../components/TextComponent";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { useNavigation } from "@react-navigation/native";
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../firebase/firebase";
+import { makeRedirectUri } from "expo-auth-session";
 
 type IntroPageNavigationProp = StackNavigationProp<RootStackParamList, 'Intro'>;
+
+WebBrowser.maybeCompleteAuthSession();
 
 const IntroData = [
     {id: 1, img: require('../../assets/travelImg.jpg'),},
@@ -50,6 +58,36 @@ export const IntroPage: React.FC = () => {
     const process = useSharedValue(0);
     const navigation = useNavigation<IntroPageNavigationProp>();
     let idx = 0;
+
+    const redirectUri = AuthSession.makeRedirectUri({
+        
+    })
+
+    // set up ggl sign in
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        clientId: '622670897999-h8hkntn6n4uali9l4nu8bs0ih3hr67j5.apps.googleusercontent.com',
+        redirectUri: redirectUri
+    });
+
+    // console.log('Redirect URI Cần Đăng Ký:', request?.redirectUri);
+
+    useEffect(() => {
+        if(response?.type === 'success') {
+            const {id_token} = response.params;
+
+            const credential = GoogleAuthProvider.credential(id_token);
+
+            signInWithCredential(auth, credential)
+            .then((userCredential) => {
+                console.log("Log in success with ", userCredential.user.email);
+                
+            })
+            .catch((err) => {
+                console.error("Login fail ", err);
+                
+            }) 
+        }
+    }, [response]);
 
     const onScrollHandler = useAnimatedScrollHandler({
         onScroll: (e) => {
@@ -106,7 +144,7 @@ export const IntroPage: React.FC = () => {
     ])
 
     return (
-        <View style={{position: 'relative'}}>
+        <ScrollView style={{position: 'relative', marginBottom: 8}}>
             <Animated.FlatList
                 data={IntroData}
                 renderItem={renderImg}
@@ -179,22 +217,26 @@ export const IntroPage: React.FC = () => {
                         type="text"
                         text="Continue with Google"
                         textColor={colors.black}
-                        onPress={() => navigation.replace('Main')}
+                        onPress={() => {
+                            // navigation.replace('Main')
+                            promptAsync();
+                        }}
                         width={'80%'}
                         backgroundColor={'transparent'}
                         height={50}
                         textFont= {'bold'}
                         textSize={16}
+                        disable={!request}
                     />
                 </View>
                 <ButtonComponent
                     type="link"
                     text="Other options"
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate('Login')}
                     
                 />
             </View>
-        </View>
+        </ScrollView>
     )
 }
 

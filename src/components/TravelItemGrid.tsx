@@ -3,19 +3,14 @@ import { Image, TouchableOpacity, View, StyleSheet } from "react-native";
 import { colors } from "../constants/colors";
 import travel from "../screens/HomeScreen";
 import { TextComponent } from "./TextComponent";
-import { Ionicons, FontAwesome } from "@expo/vector-icons"; // Import icons
-
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 interface travelProps {
   travel: travel;
-  sale?: number;
-  size?: number; // Prop này không còn dùng nhiều, kích thước sẽ tự co dãn
-  RadiusTop?: number;
-  RadiusBottom?: number;
   handleDetail?: (travel: travel) => void;
 }
 
-export const TravelItem: React.FC<travelProps> = ({
+export const TravelItemGrid: React.FC<travelProps> = ({
   travel,
   handleDetail,
 }) => {
@@ -35,36 +30,41 @@ export const TravelItem: React.FC<travelProps> = ({
           numberOfLines={1}
           text={travel.title}
           fontWeight="bold"
-          size={17}
+          size={15}
           color="#0A2C4D"
         />
 
         <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={14} color={colors.grey_text} />
-          <TextComponent
-            text={travel.departurePoint}
-            size={13}
+          <Ionicons
+            name="location-outline"
+            size={12}
             color={colors.grey_text}
-            styles={{ marginLeft: 4 }}
+          />
+          <TextComponent
+            numberOfLines={1}
+            text={travel.departurePoint}
+            size={12}
+            color={colors.grey_text}
+            styles={{ marginLeft: 4, flex: 1 }}
           />
         </View>
 
         <View style={styles.bottomRow}>
           {/* Rating */}
           <View style={styles.ratingRow}>
-            <FontAwesome name="star" size={16} color="#FFA500" />
+            <FontAwesome name="star" size={14} color="#FFA500" />
             <TextComponent
               text={`${travel.averageRating.toFixed(1)}`}
-              size={14}
+              size={12}
               fontWeight="bold"
               color="#0A2C4D"
-              styles={{ marginLeft: 5 }}
+              styles={{ marginLeft: 3 }}
             />
             <TextComponent
               text={`(${travel.reviewCount})`}
-              size={13}
+              size={11}
               color={colors.grey_text}
-              styles={{ marginLeft: 3 }}
+              styles={{ marginLeft: 2 }}
             />
           </View>
 
@@ -72,76 +72,54 @@ export const TravelItem: React.FC<travelProps> = ({
           <TextComponent
             text={`${travel.price.toLocaleString("vi-VN")} ₫`}
             fontWeight="bold"
-            color={colors.red} // Hoặc màu cam #FF7A2F
-            size={16}
+            color={colors.red}
+            size={14}
           />
         </View>
       </View>
-
-      <TouchableOpacity style={styles.btnSave}>
-        <Image source={require('../../assets/save.png')}/>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
 
-// Stylesheet cho TravelItem
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    width: 260, // Kích thước thẻ cố định
-    minHeight: 280, // Chiều cao tối thiểu
+    width: "100%",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    marginBottom: 10, // Khoảng cách giữa các thẻ (nếu dùng trong Vertical List)
-    position: 'relative',
+    overflow: "hidden",
   },
   imageContainer: {
     width: "100%",
-    height: 160,
+    height: 140,
   },
   image: {
     width: "100%",
     height: "100%",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
     resizeMode: "cover",
   },
-  bookmarkButton: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 6,
-    borderRadius: 20,
-  },
   infoContainer: {
-    padding: 12,
+    padding: 10,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 6,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 6,
   },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
-
-  btnSave: {
-    position: 'absolute',
-    top: 5,
-    right: 10,
-  }
 });

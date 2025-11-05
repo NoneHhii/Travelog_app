@@ -5,7 +5,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    SafeAreaView,
     Text,
     FlatList, // Vẫn cần FlatList nếu Slider không được dùng
     ActivityIndicator
@@ -14,6 +13,7 @@ import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // --- Import Types and API ---
 import travel, { RootStackParamList } from "./HomeScreen";

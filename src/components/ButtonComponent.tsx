@@ -15,6 +15,7 @@ interface ButtonProps {
     type: 'button' | 'link' | 'text',
     icon?: ReactNode,
     textFont?: any,
+    fontWeight?: any,
     width?: any,
     height?: any,
     textSize?: number,
@@ -23,7 +24,7 @@ interface ButtonProps {
 export const ButtonComponent : React.FC<ButtonProps> = ({
     text,
     backgroundColor = "#2196F3",
-    textColor = colors.white,
+    textColor,
     borderRadius,
     onPress,
     disable = false,
@@ -34,6 +35,7 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
     width,
     height,
     textSize = 14,
+    fontWeight,
 }) => {
     return type === 'button' ? (
         <View style={{alignItems: 'center', width: "100%"}}>
@@ -51,11 +53,11 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
                 {icon && iconFlex === 'left' && icon}
                 <TextComponent
                     text={text}
-                    color={textColor}
+                    color={textColor ?? colors.white}
                     styles={[styles.text]}
                     flex={icon && iconFlex === 'right' ? 1 : 0}
                     font = {textFont ?? fontFamilies.medium}
-                    fontWeight = {textFont ?? fontFamilies.medium}
+                    fontWeight = {fontWeight ?? 'bold'}
                     size = {textSize}
                 />
             </TouchableOpacity>
@@ -65,7 +67,7 @@ export const ButtonComponent : React.FC<ButtonProps> = ({
             <TextComponent
                 text={text}
                 flex={0}
-                color={type === 'link' ? colors.grey_text : colors.black}
+                color={type === 'link' ? colors.grey_text : textColor}
                 font = {textFont ?? fontFamilies.medium}
                 fontWeight = {textFont ?? fontFamilies.medium}
                 size = {textSize}

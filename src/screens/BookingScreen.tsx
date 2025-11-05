@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"; // Added useEffect, useCallback
+import React, { useState, useEffect, useCallback } from "react";
 import {
     Image,
     ScrollView,
@@ -7,21 +7,17 @@ import {
     View,
     SafeAreaView,
     Text,
-    ActivityIndicator, // Added ActivityIndicator
-    // FlatList, // Can remove if only using Slider
+    ActivityIndicator,
 } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native"; // Added useNavigation
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"; // Added Navigation types
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import travel, { RootStackParamList } from "./HomeScreen";
+import { getAllTravel } from "../api/apiClient";
+import { TravelItem } from "../components/TravelItem";
+import { Slider } from "../components/Slider";
 
-// --- Import Types, API, and Components ---
-import travel, { RootStackParamList } from "./HomeScreen"; // Import types
-import { getAllTravel } from "../api/apiClient"; // Import API
-import { TravelItem } from "../components/TravelItem"; // Import TravelItem (if Slider uses it)
-import { Slider } from "../components/Slider"; // Import Slider component
-
-// --- Consistent Color Palette (Blue Theme) ---
 const lightBackground = "#F4F7FF";
 const themeColor = "#0194F3";
 const cardBackgroundColor = colors.white;
@@ -36,10 +32,8 @@ const fireIconColor = '#FF7D4A';
 const couponIconBackgroundColor = '#E0F1FF';
 const couponIconColor = '#4AB4FF';
 
-// --- Navigation Type ---
 type BookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// --- Header Component ---
 const BookingHeader: React.FC = () => (
     <View style={styles.headerContainer}>
         <View style={styles.headerButtonPlaceholder} />
@@ -48,9 +42,8 @@ const BookingHeader: React.FC = () => (
     </View>
 );
 
-// --- Hook to fetch travel data (similar to SavingScreen) ---
 const useSuggestedTravels = () => {
-    const [suggestedTravels, setSuggestedTravels] = useState<travel[]>([]);
+    const [suggestedTravels, setSuggestedTravels] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
@@ -59,7 +52,6 @@ const useSuggestedTravels = () => {
             setIsLoading(true);
             setError(null);
             try {
-                // Fetch all travels for suggestion for now
                 const data = await getAllTravel();
                 setSuggestedTravels(data);
             } catch (err) {
@@ -80,9 +72,8 @@ export const BookingScreen: React.FC = () => {
     const [selectedTab, setSelectedTab] = useState("Ngân hàng");
 
     const navigation = useNavigation<BookingScreenNavigationProp>();
-    const { suggestedTravels, isLoading, error } = useSuggestedTravels(); // Fetch suggested travels
+    const { suggestedTravels, isLoading, error } = useSuggestedTravels();
 
-    // --- Tab Button Component ---
     interface TabButtonProps {
         text: string;
         isActive: boolean;
@@ -105,7 +96,6 @@ export const BookingScreen: React.FC = () => {
         </TouchableOpacity>
     );
 
-     // --- Handle Navigation to Detail ---
      const handleDetail = useCallback(
         (item: travel) => {
             navigation.navigate("TravelDetail", { travel: item });
@@ -120,7 +110,6 @@ export const BookingScreen: React.FC = () => {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
             >
-                {/* --- Empty State Card --- */}
                 <View style={styles.card}>
                     <Image
                         source={require("../../assets/KhongYeuCauDatCho.png")}
@@ -134,7 +123,6 @@ export const BookingScreen: React.FC = () => {
                     </Text>
                 </View>
 
-                {/* --- Coupon Card --- */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <View style={[styles.iconPill, { backgroundColor: couponIconBackgroundColor }]}>
@@ -165,7 +153,6 @@ export const BookingScreen: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* --- Suggestions Card (Modified) --- */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                          <View style={[styles.iconPill, { backgroundColor: fireIconBackgroundColor}]}>
@@ -182,26 +169,22 @@ export const BookingScreen: React.FC = () => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* --- REMOVED Tabs and See More Link --- */}
-                    {/* --- ADDED Horizontal Slider --- */}
                      {isLoading ? (
                         <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }}/>
                     ) : error ? (
                          <Text style={[styles.errorText, {marginTop: 10}]}>Lỗi tải gợi ý.</Text>
                     ) : suggestedTravels.length > 0 ? (
                         <Slider
-                            travels={suggestedTravels} // Use fetched data
-                            handleDetail={handleDetail} // Pass navigation handler
+                            travels={suggestedTravels}
+                            handleDetail={handleDetail}
                             RadiusTop={16}
                             RadiusBottom={16}
                         />
                     ) : (
                          <Text style={styles.noSuggestionText}>Hiện chưa có gợi ý nào.</Text>
                     )}
-                    {/* --- END Horizontal Slider --- */}
                 </View>
 
-                {/* --- Activity Card --- */}
                  <View style={styles.card}>
                      <Text style={styles.cardTitle}>
                          Tất cả các hoạt động

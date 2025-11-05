@@ -10,9 +10,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView, // Thêm
+  SafeAreaView,
   Text,
-  Alert, // Dùng Text của React Native
+  Alert,
 } from "react-native";
 import { colors } from "../constants/colors";
 import createAcronym from "../utils/acronym";
@@ -20,12 +20,11 @@ import { Picker } from "@react-native-picker/picker";
 import DatePickerInput from "../components/DatePickerInput";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { PaymentType } from "./Payment";
-import travel from "./HomeScreen"; // Giả sử InforProps ở đây
+import travel from "./HomeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { StaticParamList } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/RootNavigator";
 
-// --- Types ---
 export interface Guest {
   id: number;
   birthDate: string;
@@ -73,7 +72,6 @@ export interface InforProps {
 
 type StackProps = NativeStackScreenProps<RootStackParamList, "BookingInfor">;
 
-// --- Component Con: Header ---
 interface BookingHeaderProps {
   onBackPress: () => void;
 }
@@ -87,21 +85,17 @@ const BookingHeader: React.FC<BookingHeaderProps> = ({ onBackPress }) => (
   </View>
 );
 
-// --- Component Con: Thẻ Thông Tin Chuyến Đi ---
 const TourInfoCard: React.FC<{ props: InforProps }> = ({ props }) => (
   <View style={[styles.card, styles.tourInfoCard]}>
     <Text style={styles.tourInfoDate}>{props.travelDate}</Text>
     <View style={styles.routeContainer}>
-      {/* Departure */}
       <View style={styles.routePoint}>
         <Text style={styles.pointAcronym}>
           {createAcronym(props.departure)}
         </Text>
         <Text style={styles.pointName}>{props.departure}</Text>
       </View>
-      {/* Dashed Line */}
       <View style={styles.dashedLine} />
-      {/* Destination */}
       <View style={styles.routePoint}>
         <Text style={styles.pointAcronym}>
           {createAcronym(props.destination)}
@@ -109,7 +103,6 @@ const TourInfoCard: React.FC<{ props: InforProps }> = ({ props }) => (
         <Text style={styles.pointName}>{props.destination}</Text>
       </View>
     </View>
-    {/* Guest Info */}
     <View style={styles.guestInfoContainer}>
       <View style={styles.guestRow}>
         <Ionicons name="person-outline" size={16} color={colors.grey_text} />
@@ -125,7 +118,6 @@ const TourInfoCard: React.FC<{ props: InforProps }> = ({ props }) => (
   </View>
 );
 
-// --- Component Con: Thẻ Thông Tin Liên Hệ ---
 interface ContactInfoCardProps {
   email: string;
   onEmailChange: (text: string) => void;
@@ -169,7 +161,6 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = (props) => (
   </View>
 );
 
-// --- Component Con: Thẻ Thông Tin Hành Khách ---
 interface PassengerCardProps {
   guest: Guest;
   index: number;
@@ -217,7 +208,6 @@ const PassengerCard: React.FC<PassengerCardProps> = ({ guest, index, onInputChan
   </View>
 );
 
-// --- Component Con: Thanh Footer ---
 interface BookingBottomBarProps {
   totalPrice: number;
   onContinue: () => void;
@@ -238,23 +228,20 @@ const BookingBottomBar: React.FC<BookingBottomBarProps> = ({ totalPrice, onConti
         onPress={onContinue}
         width={"100%"}
         height={50}
-        backgroundColor="#0194F3" // Màu tím
+        backgroundColor="#0194F3"
         borderRadius={15}
       />
     </View>
   </View>
 );
 
-// --- Component Chính: BookingInfor ---
 const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
   const { props } = route.params;
 
-  // State thông tin liên hệ
   const [contactEmail, setContactEmail] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
 
-  // === SỬA LỖI LOGIC: Hợp nhất state hành khách ===
   const [allGuests, setAllGuests] = useState<Guest[]>(() => {
     const adults = Array.from({ length: props.AdultNum }, (_, index) => ({
       id: index + 1,
@@ -262,7 +249,6 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
       birthDate: '',
       typeOfSeat: 'Standard' as const,
     }));
-    // SỬA: Dùng props.Child thay vì props.AdultNum
     const children = Array.from({ length: props.Child }, (_, index) => ({
       id: props.AdultNum + index + 1,
       fullName: '',
@@ -271,7 +257,6 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
     }));
     return [...adults, ...children];
   });
-  // ===============================================
 
   const handleInputChange = useCallback((
     id: number,
@@ -289,7 +274,7 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
 
   const checkEmpty = () => {
     if(contactEmail.trim() === "" || contactName.trim() === "" || contactPhone.trim() === "") return false;
-    
+
     const existEmp = allGuests.find(guest => guest.fullName.trim() === "" || guest.birthDate.trim() === "" );
     if(existEmp) return false;
     return true;
@@ -308,7 +293,7 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
     if(checkEmpty()) {
       navigation.navigate("Payment", { payment });
     } else {
-      Alert.alert("Vui lòng nhập đầy đủ thông tin");
+      Alert.alert("Thông báo","Vui lòng nhập đầy đủ thông tin");
     }
   };
 
@@ -318,7 +303,7 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
       <ScrollView
         style={styles.scrollView}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 100 }} // Thêm padding
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         <TourInfoCard props={props} />
 
@@ -351,11 +336,10 @@ const BookingInfor: React.FC<StackProps> = ({ navigation, route }) => {
   );
 };
 
-// --- StyleSheet ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FF', // Nền xanh nhạt
+    backgroundColor: '#F4F7FF',
   },
   scrollView: {
     flex: 1,
@@ -393,9 +377,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
   },
-  // Thẻ thông tin chuyến đi
   tourInfoCard: {
-    backgroundColor: "#0A2C4D", // Nền xanh đậm
+    backgroundColor: "#0A2C4D",
   },
   tourInfoDate: {
     color: colors.white,
@@ -448,7 +431,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 8,
   },
-  // Thẻ chung
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -489,10 +471,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pickerStyle: {
-    height: 55,
+    height: 55, // Giữ nguyên chiều cao picker có thể khác TextInput
     width: '100%',
   },
-  // Footer
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',

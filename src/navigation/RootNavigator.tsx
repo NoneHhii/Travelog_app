@@ -12,6 +12,11 @@ import BookingInfor, { InforProps } from "../screens/BookingInfor";
 import Payment, { PaymentType } from "../screens/Payment";
 import { ChatbotScreen } from "../screens/ChatbotScreen";
 import { ExploreScreen } from "../screens/ExploreScreen";
+import { Login } from "../screens/Login";
+import { Register, UserDB } from "../screens/Register";
+import { AccountScreen } from "../screens/AccountScreen";
+import { SettingScreen } from "../screens/SettingScreen";
+import { useAuth } from "../hooks/useAuth";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -25,15 +30,23 @@ export type RootStackParamList = {
   BookingInfor: { props: InforProps };
   Payment: { payment: PaymentType };
   Chatbot: undefined;
+  Login: undefined;
+  Register: undefined;
+  AccountScreen: undefined;
+  SettingScreen: {user: UserDB}
 };
 
 const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
+  const {user, loading} = useAuth();
+
+  if(loading) return <SplashScreen/>
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Splash"
+        initialRouteName={user ? 'Main' : 'Splash'}
         screenOptions={{ headerShown: true }}
         // screenOptions={{
         //     header: () => <ToolBarComponent bill={false}/>, // default
@@ -115,9 +128,42 @@ export const RootNavigator: React.FC = () => {
             headerShown: false,
           }}
         />
+
         <Stack.Screen
           name="Chatbot"
           component={ChatbotScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="Register"
+          component={Register}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="AccountScreen"
+          component={AccountScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="SettingScreen"
+          component={SettingScreen}
           options={{
             headerShown: false,
           }}

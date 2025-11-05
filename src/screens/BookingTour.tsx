@@ -1,4 +1,6 @@
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import {
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
@@ -7,14 +9,14 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
-  ScrollView, // Thêm ScrollView
+  ScrollView,
 } from "react-native";
-import travel from "./HomeScreen"; // Import RootStackParamList
+import travel from "./HomeScreen"; 
 import { colors } from "../constants/colors";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { InforProps } from "./BookingInfor";
-import { Ionicons } from "@expo/vector-icons"; // Import icons
-import { TextComponent } from "../components/TextComponent"; // Giả sử bạn có TextComponent
+import { Ionicons } from "@expo/vector-icons";
+import { TextComponent } from "../components/TextComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/RootNavigator";
 // --- Types ---
@@ -23,7 +25,6 @@ type StackProps = NativeStackScreenProps<RootStackParamList, "BookingTour">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// --- Component Con: Header ---
 interface BookingHeaderProps {
   onBackPress: () => void;
 }
@@ -37,7 +38,6 @@ const BookingHeader: React.FC<BookingHeaderProps> = ({ onBackPress }) => (
   </View>
 );
 
-// --- Component Con: Lịch ---
 interface DateSelectorProps {
   dates: Date[];
   selectedDate: Date;
@@ -79,7 +79,6 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   );
 };
 
-// --- Component Con: Bộ đếm (Người lớn / Trẻ em) ---
 interface CounterRowProps {
   label: string;
   price: number;
@@ -152,7 +151,7 @@ const PassengerSelector: React.FC<{
     <View style={styles.counterDivider} />
     <CounterRow
       label="Trẻ em"
-      price={travelPrice * 0.3} // 30%
+      price={travelPrice * 0.3}
       description="100 - 139cm"
       count={selectedChildren}
       onDecrease={() =>
@@ -164,7 +163,6 @@ const PassengerSelector: React.FC<{
   </View>
 );
 
-// --- Component Con: Thanh Footer ---
 interface BookingBottomBarProps {
   totalPrice: number;
   onBookNow: () => void;
@@ -196,7 +194,6 @@ const BookingBottomBar: React.FC<BookingBottomBarProps> = ({
   </View>
 );
 
-// --- Component Chính: BookingTour ---
 const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
   const { travel, destinationName } = route.params;
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -287,11 +284,10 @@ const BookingTour: React.FC<StackProps> = ({ navigation, route }) => {
   );
 };
 
-// --- StyleSheet ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F7FF", // Màu nền nhạt
+    backgroundColor: "#F4F7FF",
   },
   scrollView: {
     flex: 1,
@@ -303,13 +299,13 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: colors.white,
     paddingHorizontal: 15,
-    paddingTop: 50, // An toàn cho status bar
+    paddingTop: 50,
     paddingBottom: 15,
     borderBottomColor: colors.light_Blue,
     borderBottomWidth: 1,
   },
   headerButton: {
-    width: 40, // Đảm bảo đủ không gian
+    width: 40,
     alignItems: "flex-start",
   },
   headerTitle: {
@@ -326,7 +322,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   dateListContainer: {
-    paddingHorizontal: 15, // Padding cho item đầu tiên
+    paddingHorizontal: 15,
     paddingBottom: 10,
   },
   dateButton: {
@@ -335,16 +331,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 5,
-    borderRadius: 12, // Bo góc
+    borderRadius: 12,
     backgroundColor: colors.white,
-    elevation: 2, // Shadow
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   selectedDateButton: {
-    backgroundColor: "#0194F3", // Màu tím
+    backgroundColor: "#0194F3",
     elevation: 4,
   },
   dateText: {
@@ -403,26 +399,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnQuan: {
-    width: 30, // Tăng kích thước
+    width: 30,
     height: 30,
-    backgroundColor: "#EAF2FF", // Màu xanh nhạt
-    borderRadius: 15, // Fix lỗi "50%"
+    backgroundColor: "#EAF2FF",
+    borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
   },
   btnQuanDisabled: {
-    backgroundColor: colors.light, // Màu xám nhạt
+    backgroundColor: colors.light,
   },
   countText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#0A2C4D",
     marginHorizontal: 15,
-    width: 25, // Đảm bảo không bị nhảy layout
+    width: 25,
     textAlign: "center",
   },
   bottomBar: {
-    // Copy style từ TravelDetail
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -436,10 +431,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    paddingBottom: 20, // Thêm padding cho thanh home
+    paddingBottom: 20,
   },
   priceContainer: {
-    flex: 0.5, // Tăng không gian
+    flex: 0.5,
   },
   priceLabel: {
     fontSize: 14,
@@ -456,10 +451,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   bookButtonContainer: {
-    flex: 0.45, // Giảm 1 chút
+    flex: 0.45,
   },
-  // Xóa các style cũ không cần thiết
-  // constainer, header, row, dateList, footer
 });
 
 export default BookingTour;
