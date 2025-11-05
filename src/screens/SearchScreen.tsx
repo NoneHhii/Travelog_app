@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,10 @@ import { TextComponent } from "../components/TextComponent";
 import { TravelItemGrid } from "../components/TravelItemGrid";
 import { getAllTravel } from "../api/apiClient";
 import travel from "./HomeScreen";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 // Import RootStackParamList từ RootNavigator để type safety
 type RootStackParamList = {
@@ -62,6 +66,7 @@ const useSearchData = () => {
 
 export const SearchScreen: React.FC = () => {
   const navigation = useNavigation<SearchScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(false);
@@ -178,8 +183,17 @@ export const SearchScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#E0F7FF", "#FFFFFF"]} style={styles.header}>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#E0F7FF"
+        translucent
+      />
+      <LinearGradient
+        colors={["#E0F7FF", "#FFFFFF"]}
+        // *** THAY ĐỔI 1: Giảm padding Top ***
+        style={[styles.header, { paddingTop: insets.top + 5 }]}
+      >
         {/* Header với back button và title */}
         <View style={styles.headerTop}>
           <TouchableOpacity
@@ -262,6 +276,7 @@ export const SearchScreen: React.FC = () => {
               size={13}
               color={colors.grey_text}
             />
+            {/* *** THAY ĐỔI 3: Dùng 'gap' trong style sortButtons *** */}
             <View style={styles.sortButtons}>
               {(
                 [
@@ -290,141 +305,141 @@ export const SearchScreen: React.FC = () => {
             </View>
           </View>
         </View>
-
-        {/* Filter Panel */}
-        {showFilters && (
-          <View style={styles.filterPanel}>
-            <View style={styles.filterSection}>
-              <TextComponent
-                text="Khoảng giá"
-                size={14}
-                fontWeight="600"
-                color="#0A2C4D"
-                styles={{ marginBottom: 10 }}
-              />
-              <View style={styles.priceInputRow}>
-                <View style={styles.priceInput}>
-                  <TextComponent
-                    text="Từ"
-                    size={12}
-                    color={colors.grey_text}
-                    styles={{ marginBottom: 5 }}
-                  />
-                  <TextInput
-                    style={styles.priceTextInput}
-                    placeholder="Min"
-                    keyboardType="numeric"
-                    value={
-                      filter.minPrice !== null ? filter.minPrice.toString() : ""
-                    }
-                    onChangeText={(text) =>
-                      setFilter({
-                        ...filter,
-                        minPrice: text ? parseInt(text) : null,
-                      })
-                    }
-                  />
-                </View>
-                <View style={styles.priceInput}>
-                  <TextComponent
-                    text="Đến"
-                    size={12}
-                    color={colors.grey_text}
-                    styles={{ marginBottom: 5 }}
-                  />
-                  <TextInput
-                    style={styles.priceTextInput}
-                    placeholder="Max"
-                    keyboardType="numeric"
-                    value={
-                      filter.maxPrice !== null ? filter.maxPrice.toString() : ""
-                    }
-                    onChangeText={(text) =>
-                      setFilter({
-                        ...filter,
-                        maxPrice: text ? parseInt(text) : null,
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.filterSection}>
-              <TextComponent
-                text="Đánh giá tối thiểu"
-                size={14}
-                fontWeight="600"
-                color="#0A2C4D"
-                styles={{ marginBottom: 10 }}
-              />
-              <View style={styles.ratingButtons}>
-                {[5, 4, 3, 2, 1].map((rating) => (
-                  <TouchableOpacity
-                    key={rating}
-                    style={[
-                      styles.ratingButton,
-                      filter.minRating === rating && styles.ratingButtonActive,
-                    ]}
-                    onPress={() =>
-                      setFilter({
-                        ...filter,
-                        minRating: filter.minRating === rating ? null : rating,
-                      })
-                    }
-                  >
-                    <Ionicons
-                      name="star"
-                      size={16}
-                      color={
-                        filter.minRating === rating
-                          ? "#FFA500"
-                          : colors.grey_text
-                      }
-                    />
-                    <TextComponent
-                      text={`${rating}+`}
-                      size={12}
-                      fontWeight={filter.minRating === rating ? "600" : "400"}
-                      color={
-                        filter.minRating === rating
-                          ? "#0A2C4D"
-                          : colors.grey_text
-                      }
-                      styles={{ marginLeft: 3 }}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {hasActiveFilters && (
-              <TouchableOpacity
-                style={styles.clearFiltersButton}
-                onPress={clearFilters}
-              >
-                <Ionicons name="close-circle" size={18} color={colors.white} />
-                <TextComponent
-                  text="Xóa bộ lọc"
-                  size={13}
-                  fontWeight="600"
-                  color={colors.white}
-                  styles={{ marginLeft: 5 }}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
-        {/* Results Count */}
-        <View style={styles.resultsCount}>
-          <TextComponent
-            text={`Tìm thấy ${filteredTravels.length} tour`}
-            size={13}
-            color={colors.grey_text}
-          />
-        </View>
       </LinearGradient>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <View style={styles.filterPanel}>
+          <View style={styles.filterSection}>
+            <TextComponent
+              text="Khoảng giá"
+              size={14}
+              fontWeight="600"
+              color="#0A2C4D"
+              styles={{ marginBottom: 10 }}
+            />
+            <View style={styles.priceInputRow}>
+              <View style={styles.priceInput}>
+                <TextComponent
+                  text="Từ"
+                  size={12}
+                  color={colors.grey_text}
+                  styles={{ marginBottom: 5 }}
+                />
+                <TextInput
+                  style={styles.priceTextInput}
+                  placeholder="Min"
+                  keyboardType="numeric"
+                  value={
+                    filter.minPrice !== null ? filter.minPrice.toString() : ""
+                  }
+                  onChangeText={(text) =>
+                    setFilter({
+                      ...filter,
+                      minPrice: text ? parseInt(text) : null,
+                    })
+                  }
+                />
+              </View>
+              <View style={styles.priceInput}>
+                <TextComponent
+                  text="Đến"
+                  size={12}
+                  color={colors.grey_text}
+                  styles={{ marginBottom: 5 }}
+                />
+                <TextInput
+                  style={styles.priceTextInput}
+                  placeholder="Max"
+                  keyboardType="numeric"
+                  value={
+                    filter.maxPrice !== null ? filter.maxPrice.toString() : ""
+                  }
+                  onChangeText={(text) =>
+                    setFilter({
+                      ...filter,
+                      maxPrice: text ? parseInt(text) : null,
+                    })
+                  }
+                />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.filterSection}>
+            <TextComponent
+              text="Đánh giá tối thiểu"
+              size={14}
+              fontWeight="600"
+              color="#0A2C4D"
+              styles={{ marginBottom: 10 }}
+            />
+            <View style={styles.ratingButtons}>
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <TouchableOpacity
+                  key={rating}
+                  style={[
+                    styles.ratingButton,
+                    filter.minRating === rating && styles.ratingButtonActive,
+                  ]}
+                  onPress={() =>
+                    setFilter({
+                      ...filter,
+                      minRating: filter.minRating === rating ? null : rating,
+                    })
+                  }
+                >
+                  <Ionicons
+                    name="star"
+                    size={16}
+                    color={
+                      filter.minRating === rating
+                        ? "#FFA500"
+                        : colors.grey_text
+                    }
+                  />
+                  <TextComponent
+                    text={`${rating}+`}
+                    size={12}
+                    fontWeight={filter.minRating === rating ? "600" : "400"}
+                    color={
+                      filter.minRating === rating
+                        ? "#0A2C4D"
+                        : colors.grey_text
+                    }
+                    styles={{ marginLeft: 3 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {hasActiveFilters && (
+            <TouchableOpacity
+              style={styles.clearFiltersButton}
+              onPress={clearFilters}
+            >
+              <Ionicons name="close-circle" size={18} color={colors.white} />
+              <TextComponent
+                text="Xóa bộ lọc"
+                size={13}
+                fontWeight="600"
+                color={colors.white}
+                styles={{ marginLeft: 5 }}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Results Count */}
+      <View style={styles.resultsCount}>
+        <TextComponent
+          text={`Tìm thấy ${filteredTravels.length} tour`}
+          size={13}
+          color={colors.grey_text}
+        />
+      </View>
 
       {/* Results List */}
       {isLoading ? (
@@ -462,7 +477,8 @@ export const SearchScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+      <SafeAreaView style={styles.safeAreaBottom} edges={["bottom"]} />
+    </View>
   );
 };
 
@@ -471,8 +487,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  safeAreaBottom: {
+    flex: 0,
+    backgroundColor: "transparent",
+  },
   header: {
-    paddingTop: Platform.OS === "ios" ? 0 : 20,
     paddingBottom: 15,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 25,
@@ -482,7 +501,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 15,
+    // *** THAY ĐỔI 2: Giảm marginBottom ***
+    marginBottom: 12,
   },
   backButton: {
     padding: 5,
@@ -558,11 +578,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     flex: 1,
+    // *** THAY ĐỔI 3: Thêm 'gap' ***
+    gap: 8,
   },
   sortButton: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    marginLeft: 5,
+    // *** THAY ĐỔI 3: Xóa 'marginLeft' ***
+    // marginLeft: 5, 
     borderRadius: 12,
     backgroundColor: colors.white,
     borderWidth: 1,
@@ -633,6 +656,8 @@ const styles = StyleSheet.create({
   resultsCount: {
     marginTop: 10,
     paddingVertical: 5,
+    // *** THAY ĐỔI: Thêm paddingHorizontal để căn lề với danh sách ***
+    paddingHorizontal: 20,
   },
   listContent: {
     padding: 15,

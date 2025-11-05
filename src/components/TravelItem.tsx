@@ -26,7 +26,7 @@ export const TravelItem: React.FC<travelProps> = ({
     >
       {/* Phần hình ảnh */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: travel.images[0] }} style={styles.image} />
+        <Image source={{ uri: travel.images[3] }} style={styles.image} />
       </View>
 
       {/* Phần thông tin */}

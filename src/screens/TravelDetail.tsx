@@ -135,9 +135,9 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
         style={styles.scrollView}
       >
         <Image
-          source={{ uri: travel.images[0] }}
-          style={styles.imgBanner}
-        />
+          source={{ uri: travel.images[3] }}
+          style={styles.imgBanner}
+        />
 
         <View style={styles.contentContainer}>
           <View style={styles.section}>
