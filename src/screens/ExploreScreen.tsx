@@ -145,6 +145,7 @@ export const ExploreScreen: React.FC = () => {
             setIsLoading(false);
             return;
         }
+        console.log(process.env.YOUTUBE_API_KEY)
         fetchYoutubeVideos(searchTerm);
     }, [fetchYoutubeVideos, searchTerm]);
 
@@ -228,7 +229,18 @@ export const ExploreScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
     screenContainer: { flex: 1, backgroundColor: lightBackground },
-    headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', backgroundColor: colors.white, paddingHorizontal: 15, paddingTop: 50, paddingBottom: 15, borderBottomColor: colors.light_Blue, borderBottomWidth: 1 },
+headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        backgroundColor: colors.white,
+        paddingHorizontal: 15,
+        paddingTop: 10,
+        paddingBottom: 15,
+        borderBottomColor: colors.light_Blue,
+        borderBottomWidth: 1,
+    },    
     headerTitle: { fontSize: 18, fontWeight: 'bold', color: primaryTextColor },
     headerButtonPlaceholder: { width: 40 },
     searchBarWrapper: { paddingHorizontal: 15, paddingTop: 15, paddingBottom: 15, backgroundColor: colors.white, borderBottomColor: colors.light_Blue, borderBottomWidth: 1 },

@@ -253,11 +253,11 @@ export const ChatbotScreen: React.FC = () => {
   // ------------------------------------
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <View style={styles.container} edges={[]}>
       <StatusBar barStyle="dark-content" backgroundColor={whiteBackground} />
       {/* --- Header Đẹp (Đã thêm nút back) --- */}
       <View
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
+        style={[styles.header, { paddingTop: 10 }]}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -371,7 +371,7 @@ export const ChatbotScreen: React.FC = () => {
         {/* ------------------------------------ */}
         
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

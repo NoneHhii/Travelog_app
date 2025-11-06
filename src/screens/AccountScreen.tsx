@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: colors.white,
         paddingHorizontal: 15,
-        paddingTop: 50,
+        paddingTop: 10,
         paddingBottom: 15,
         borderBottomColor: colors.light_Blue,
         borderBottomWidth: 1,

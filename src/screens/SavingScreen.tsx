@@ -8,7 +8,6 @@ import {
     Text,
     FlatList, // Vẫn cần FlatList nếu Slider không được dùng
     ActivityIndicator,
-    SafeAreaView
 } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -82,7 +81,7 @@ export const SavingScreen: React.FC = () => {
 
 
     return (
-        <SafeAreaView style={styles.screenContainer}>
+        <View style={styles.screenContainer}>
             <SavingHeader />
             <ScrollView
                 style={styles.scrollView}
@@ -151,7 +150,7 @@ export const SavingScreen: React.FC = () => {
                 </View>
 
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: colors.white,
         paddingHorizontal: 15,
-        paddingTop: 50,
+        paddingTop: 10,
         paddingBottom: 15,
         borderBottomColor: colors.light_Blue,
         borderBottomWidth: 1,
