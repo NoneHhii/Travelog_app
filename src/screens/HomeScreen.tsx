@@ -25,7 +25,8 @@ import {
 
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/RootNavigator"; // Assuming RootNavigator exports this
+import { RootStackParamList } from "../navigation/RootNavigator";  // Assuming RootNavigator exports this
+import { useAuth } from "../hooks/useAuth";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const BUTTON_SIZE = 65;
@@ -51,13 +52,6 @@ export default interface travel {
   averageRating: number;
   reviewCount: number;
 }
-
-export type RootStackParamList = {
-  Home: undefined;
-  TravelDetail: { travel: travel };
-  Chatbot: undefined;
-  Search: undefined;
-};
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -152,8 +146,9 @@ const useDraggableFloatingButton = () => {
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
 
-const HomeHeader: React.FC<{ onSearchPress: () => void }> = ({
+const HomeHeader: React.FC<{ onSearchPress: () => void, name: string }> = ({
   onSearchPress,
+  name
 }) => (
   <LinearGradient
     colors={["#E0F7FF", "#FFFFFF"]}
@@ -162,7 +157,7 @@ const HomeHeader: React.FC<{ onSearchPress: () => void }> = ({
     <View style={styles.headerTopRow}>
       <View>
         <TextComponent
-          text="Xin chào, du khách!"
+          text={`Xin chào, ${name}`}
           size={22}
           fontWeight="bold"
           color="#0A2C4D"
@@ -381,6 +376,7 @@ const DraggableChatbotButton: React.FC = () => {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { travels, isLoading, error } = useTravelData();
+  const {user} = useAuth();
 
   const handleDetail = useCallback(
     (travel: travel) => {
@@ -416,7 +412,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
-        <HomeHeader onSearchPress={handleSearchPress} />
+        <HomeHeader onSearchPress={handleSearchPress} name={user.displayName}/>
         <MenuGrid />
         <OffersSection />
         <TravelSection travels={travels} onPressItem={handleDetail} />

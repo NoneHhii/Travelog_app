@@ -11,20 +11,17 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import travel, { RootStackParamList } from "./HomeScreen";
+import travel from "./HomeScreen"; 
 import { colors } from "../constants/colors";
 import { ButtonComponent } from "../components/ButtonComponent";
 import { InforProps } from "./BookingInfor";
 import { Ionicons } from "@expo/vector-icons";
 import { TextComponent } from "../components/TextComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RootStackParamList } from "../navigation/RootNavigator";
+// --- Types ---
 
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  BookingInfor: { props: InforProps };
-  TravelDetail: { travel: travel };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "BookingTour">;
+type StackProps = NativeStackScreenProps<RootStackParamList, "BookingTour">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

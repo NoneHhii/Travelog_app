@@ -14,6 +14,9 @@ import { LinearGradient } from "expo-linear-gradient";
 // import ViewOptionComponent from "../components/ViewOptionComponent";
 import { colors } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../hooks/useAuth";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/RootNavigator";
 
 const lightBackground = "#F4F7FF";
 const themeColor = "#0194F3";
@@ -95,19 +98,30 @@ interface OptionRowProps {
     isLast?: boolean;
 }
 
-const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPress, isLast }) => (
+export const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPress, isLast }) => (
     <TouchableOpacity style={[styles.optionRow, isLast && styles.optionRowLast]} onPress={onPress} activeOpacity={0.7}>
         <Ionicons name={icon} size={24} color={themeColor} style={styles.optionIcon} />
         <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>{title}</Text>
+            <Text style={styles.optionTitle}>{title}</Text> 
             <Text style={styles.optionContent}>{content}</Text>
         </View>
         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
     </TouchableOpacity>
 );
 
+type Stack = NativeStackScreenProps<RootStackParamList, 'AccountScreen'>
 
-export const AccountScreen: React.FC = () => {
+export const AccountScreen: React.FC<Stack> = ({navigation}) => {
+
+    const {user, loading} = useAuth();
+
+    const handleService = (id: number) => {
+        
+        switch(id) {
+            case 3: navigation.navigate('SettingScreen', {user});
+        }
+    }
+
     return (
         <SafeAreaView style={styles.screenContainer}>
             <AccountHeader />
@@ -123,7 +137,7 @@ export const AccountScreen: React.FC = () => {
                         />
                         <View style={styles.profileInfo}>
                             <View style={styles.profileNameRow}>
-                                <Text style={styles.profileName}>Tên Người Dùng</Text>
+                                <Text style={styles.profileName}>{user.displayName}</Text>
                                 <TouchableOpacity>
                                     <Ionicons name="pencil-outline" size={20} color={secondaryTextColor} />
                                 </TouchableOpacity>
@@ -184,6 +198,7 @@ export const AccountScreen: React.FC = () => {
                              title={item.title}
                              content={item.content}
                              isLast={index === serviceOptions.length - 1}
+                             onPress={() => handleService(item.id)}
                          />
                      ))}
                 </View>

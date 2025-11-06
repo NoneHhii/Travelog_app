@@ -1,6 +1,7 @@
-import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { Booking } from "../screens/BookingInfor";
+import { UserDB } from "../screens/Register";
 
 
 export async function createBooking(booking: Booking) {
@@ -67,4 +68,46 @@ export async function getUsers() {
         console.error("Error fetching travel data:", error);
         return [];
     }
+}
+
+export async function getOneUser(uid: string) {
+    if(!uid) {
+        console.log("Value failure");
+        return null;
+    };
+
+    const userDocRef = doc(db, "users", uid);
+    
+    try {
+        const snapshot = await getDoc(userDocRef);
+        // console.log(snapshot.data());
+        
+        if(snapshot.exists()) {
+            return {
+                id: snapshot.id,
+                ...snapshot.data()
+            };
+        } else {
+            console.log("Cannot found user");
+            return null;
+            
+        }
+    } catch (error) {
+        console.error("Error fetching travel data:", error);
+        return [];
+    }
+}
+
+
+// user
+export async function createUser(user: UserDB) {
+    const userDocRef = doc(db, "users", user.uid);
+
+    await setDoc(userDocRef, {
+        ...user,
+        createAt: serverTimestamp(),
+    });
+    console.log("Added: ", user.uid);
+    return user.uid;
+    
 }

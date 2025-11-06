@@ -5,6 +5,7 @@ import travel from "../screens/HomeScreen";
 import { TextComponent } from "./TextComponent";
 import { Ionicons, FontAwesome } from "@expo/vector-icons"; // Import icons
 
+
 interface travelProps {
   travel: travel;
   sale?: number;
@@ -76,6 +77,10 @@ export const TravelItem: React.FC<travelProps> = ({
           />
         </View>
       </View>
+
+      <TouchableOpacity style={styles.btnSave}>
+        <Image source={require('../../assets/save.png')}/>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -93,6 +98,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     marginBottom: 10, // Khoảng cách giữa các thẻ (nếu dùng trong Vertical List)
+    position: 'relative',
   },
   imageContainer: {
     width: "100%",
@@ -132,4 +138,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+
+  btnSave: {
+    position: 'absolute',
+    top: 5,
+    right: 10,
+  }
 });

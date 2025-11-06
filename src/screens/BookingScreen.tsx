@@ -45,7 +45,7 @@ const BookingHeader: React.FC = () => (
 );
 
 const useSuggestedTravels = () => {
-    const [suggestedTravels, setSuggestedTravels] = useState<travel[]>([]);
+    const [suggestedTravels, setSuggestedTravels] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
