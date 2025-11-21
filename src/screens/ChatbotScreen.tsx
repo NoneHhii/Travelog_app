@@ -14,32 +14,34 @@ import {
   Animated,
   Keyboard,
   KeyboardAvoidingView,
+  Image,
 } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native"; // Thêm
-import { Ionicons } from "@expo/vector-icons"; // Thêm
-// import ChatMessage from "../components/ChatMessage"; // Đã XÓA
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import TypingIndicator from "../components/TypingIndicator";
 import ChatbotIcon from "../components/ChatbotIcon";
+import { LinearGradient } from "expo-linear-gradient";
 
-// --- Bảng màu được tinh chỉnh ---
+// --- Bảng màu được tinh chỉnh (Super Product) ---
 const primaryBlue = "#0194F3";
-const lightBlueBackground = "#F0F8FF";
+const primaryGradient = ["#0194F3", "#0077C2"] as const;
+const lightBlueBackground = "#F7F9FC";
 const whiteBackground = "#FFFFFF";
 const darkText = "#1A2C2C";
 const greyText = "#718096";
-const userBubbleBackground = primaryBlue;
-const buttonDisabledBackground = "#CBD5E0";
 const borderColorLight = "#E2E8F0";
+const buttonDisabledBackground = "#CBD5E0";
 
 interface ChatMessageType {
   hideInChat?: boolean;
   role: "user" | "model";
   text: string;
   isError?: boolean;
+  tourData?: Tour;
 }
 
 interface Tour {
@@ -52,45 +54,210 @@ interface Tour {
   averageRating: number;
   duration: { days: number; nights: number };
   itinerary: { day: number; title: string; details: string }[];
+  images?: string[];
 }
 
-// --- Component ChatMessage (Định nghĩa nội tuyến, đã tinh chỉnh) ---
-const ChatMessage: React.FC<{ chat: ChatMessageType }> = ({ chat }) => {
+// --- Component RichText (Hiển thị Markdown đẹp mắt) ---
+const RichText: React.FC<{ text: string; style?: any }> = ({ text, style }) => {
+  const parseText = (input: string) => {
+    const parts = [];
+    let lastIndex = 0;
+    const regex = /(\*\*(.*?)\*\*)|(^\s*\*\s(.*?)$)|(###\s(.*?)$)/gm;
+    let match;
+
+    while ((match = regex.exec(input)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({
+          type: "text",
+          content: input.substring(lastIndex, match.index),
+        });
+      }
+
+      if (match[1]) {
+        parts.push({ type: "bold", content: match[2] });
+      } else if (match[3]) {
+        parts.push({ type: "list", content: match[4] });
+      } else if (match[5]) {
+        parts.push({ type: "header", content: match[6] });
+      }
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < input.length) {
+      parts.push({ type: "text", content: input.substring(lastIndex) });
+    }
+
+    return parts;
+  };
+
+  const parsed = parseText(text);
+
+  return (
+    <Text style={style}>
+      {parsed.map((part, index) => {
+        switch (part.type) {
+          case "bold":
+            return (
+              <Text key={index} style={{ fontWeight: "bold", color: "#2D3748" }}>
+                {part.content}
+              </Text>
+            );
+          case "header":
+            return (
+              <Text
+                key={index}
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: primaryBlue,
+                  lineHeight: 24,
+                }}
+              >
+                {"\n"}{part.content}{"\n"}
+              </Text>
+            );
+          case "list":
+            return (
+              <Text key={index} style={{ lineHeight: 22 }}>
+                {"\n"}• {part.content}
+              </Text>
+            );
+          default:
+            return <Text key={index}>{part.content}</Text>;
+        }
+      })}
+    </Text>
+  );
+};
+
+// --- Component TourCard (Siêu đẹp với gradient và image) ---
+const TourCard: React.FC<{ tour: Tour; onPress: () => void }> = ({ tour, onPress }) => {
+  const imageUrl = tour.images && tour.images.length > 0
+    ? tour.images[0]
+    : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
+
+  return (
+    <TouchableOpacity
+      style={styles.tourCard}
+      onPress={onPress}
+      activeOpacity={0.9}
+    >
+      <View style={styles.tourImageContainer}>
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.tourImage}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          style={styles.tourImageGradient}
+        />
+      </View>
+
+      <View style={styles.tourCardContent}>
+        <Text style={styles.tourCardTitle} numberOfLines={2}>
+          {tour.title}
+        </Text>
+
+        <View style={styles.tourInfoRow}>
+          <Ionicons name="location" size={14} color={primaryBlue} />
+          <Text style={styles.tourInfoText} numberOfLines={1}>
+            {tour.departurePoint}
+          </Text>
+        </View>
+
+        <View style={styles.tourInfoRow}>
+          <Ionicons name="time-outline" size={14} color={primaryBlue} />
+          <Text style={styles.tourInfoText}>
+            {tour.duration?.days || 0} ngày {tour.duration?.nights || 0} đêm
+          </Text>
+        </View>
+
+        <View style={styles.tourInfoRow}>
+          <Ionicons name="star" size={14} color="#FFA500" />
+          <Text style={styles.tourInfoText}>
+            {tour.averageRating}/5 ({tour.reviewCount} đánh giá)
+          </Text>
+        </View>
+
+        <View style={styles.tourCardFooter}>
+          <View style={styles.tourPriceContainer}>
+            <Text style={styles.tourPriceLabel}>Giá từ</Text>
+            <Text style={styles.tourPrice}>
+              {tour.price.toLocaleString("vi-VN")}₫
+            </Text>
+          </View>
+
+          <LinearGradient
+            colors={primaryGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.viewTourButton}
+          >
+            <Text style={styles.viewTourButtonText}>Xem Tour</Text>
+            <Ionicons name="arrow-forward" size={16} color="#fff" />
+          </LinearGradient>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// --- Component ChatMessage (Định nghĩa nội tuyến, siêu đẹp) ---
+const ChatMessage: React.FC<{ chat: ChatMessageType; navigation: any }> = ({ chat, navigation }) => {
   if (chat.hideInChat) return null;
 
   const isUser = chat.role === "user";
 
+  if (isUser) {
+    return (
+      <View style={[styles.messageWrapperBase, styles.messageWrapperUser]}>
+        <LinearGradient
+          colors={primaryGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.messageBubbleBase, styles.userMessage]}
+        >
+          <Text style={[styles.messageTextBase, styles.messageTextUser]}>
+            {chat.text}
+          </Text>
+        </LinearGradient>
+      </View>
+    );
+  }
+
   return (
-    <View
-      style={[
-        styles.messageWrapperBase,
-        isUser ? styles.messageWrapperUser : styles.messageWrapperBot,
-      ]}
-    >
-      {!isUser && (
+    <View style={{ width: '100%' }}>
+      <View style={[styles.messageWrapperBase, styles.messageWrapperBot]}>
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
             <ChatbotIcon width={18} height={18} color="#fff" />
           </View>
         </View>
-      )}
 
-      <View
-        style={[
-          styles.messageBubbleBase,
-          isUser ? styles.userMessage : styles.botMessage,
-          chat.isError ? styles.errorMessage : null,
-        ]}
-      >
-        <Text
+        <View
           style={[
-            styles.messageTextBase,
-            isUser ? styles.messageTextUser : styles.messageTextBot,
+            styles.messageBubbleBase,
+            styles.botMessage,
+            chat.isError ? styles.errorMessage : null,
           ]}
         >
-          {chat.text}
-        </Text>
+          <RichText
+            text={chat.text}
+            style={[styles.messageTextBase, styles.messageTextBot]}
+          />
+        </View>
       </View>
+
+      {chat.tourData && (
+        <View style={{ marginLeft: 46, marginTop: 8 }}>
+          <TourCard
+            tour={chat.tourData}
+            onPress={() => navigation.navigate('TravelDetail', { travel: chat.tourData })}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -99,26 +266,22 @@ export const ChatbotScreen: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
   const [message, setMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  // --- Logic Keyboard từ code gốc CỦA BẠN ---
+
   const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  // ------------------------------------
 
   const flatListRef = useRef<FlatList<ChatMessageType>>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const insets = useSafeAreaInsets();
-  const [tours, setTours] = useState([]);
-  const navigation = useNavigation(); // Thêm
+  const [tours, setTours] = useState<Tour[]>([]);
+  const navigation = useNavigation();
 
-  // --- Logic Keyboard từ code gốc CỦA BẠN ---
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
         setKeyboardHeight(e.endCoordinates.height);
         setKeyboardVisible(true);
-        // Tự động scroll xuống cuối khi keyboard hiện
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
@@ -137,7 +300,6 @@ export const ChatbotScreen: React.FC = () => {
       keyboardWillHide.remove();
     };
   }, []);
-  // ------------------------------------
 
   useEffect(() => {
     setChatHistory([
@@ -163,25 +325,24 @@ export const ChatbotScreen: React.FC = () => {
               ?.map((d) => `Ngày ${d.day}: ${d.title} – ${d.details}`)
               .join("; ");
 
-            return `
-                            === ${tour.title} ===
-                            📍 Khởi hành từ: ${tour.departurePoint}
-                            🕒 Thời lượng: ${days} ngày ${nights} đêm
-                            💰 Giá: ${tour.price.toLocaleString("vi-VN")}₫
-                            ⭐ Đánh giá: ${tour.averageRating}/5 (${
-              tour.reviewCount
-            } lượt)
-                            📖 Mô tả: ${tour.description}
-                            🗓️ Lịch trình: ${itineraryText}
-                        `;
+            return [
+              `### ${tour.title}`,
+              `* 📍 Khởi hành: ${tour.departurePoint}`,
+              `* 🕒 Thời lượng: ${days} ngày ${nights} đêm`,
+              `* 💰 Giá: ${tour.price.toLocaleString("vi-VN")}₫`,
+              `* ⭐ Đánh giá: ${tour.averageRating}/5 (${tour.reviewCount} lượt)`,
+              `* 📖 Mô tả: ${tour.description}`,
+              `* 🗓️ Lịch trình: ${itineraryText}`,
+            ].join("\n");
           })
           .join("\n\n");
+
         setChatHistory((prev) => [
           ...prev,
           {
             hideInChat: true,
             role: "model",
-            text: `Dưới đây là danh sách các tour hiện có trong hệ thống:\n${tourSummary}`,
+            text: `Dưới đây là danh sách các tour hiện có trong hệ thống. Hãy trả lời đẹp mắt bằng Markdown (bold cho nhấn mạnh, lists cho tính năng):\n${tourSummary}`,
           },
         ]);
 
@@ -196,14 +357,14 @@ export const ChatbotScreen: React.FC = () => {
 
   useEffect(() => {
     if (chatHistory.length > 0) {
-        flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current?.scrollToEnd({ animated: true });
     }
   }, [chatHistory]);
 
   const generateBotResponse = async (history: ChatMessageType[]) => {
     setIsLoading(true);
-    const updateHistory = (text: string, isError = false) => {
-      setChatHistory((prev) => [...prev, { role: "model", text, isError }]);
+    const updateHistory = (text: string, isError = false, tourData?: Tour) => {
+      setChatHistory((prev) => [...prev, { role: "model", text, isError, tourData }]);
       setIsLoading(false);
     };
 
@@ -228,16 +389,19 @@ export const ChatbotScreen: React.FC = () => {
 
       const apiResponseText =
         data.candidates?.[0]?.content?.parts?.[0]?.text
-          ?.replace(/\*\*(.*?)\*\*/g, "$1")
           ?.trim() || "Không có phản hồi từ bot.";
 
-      updateHistory(apiResponseText);
+      // Check if bot is recommending a specific tour
+      const tourMatch = tours.find(tour =>
+        apiResponseText.toLowerCase().includes(tour.title.toLowerCase())
+      );
+
+      updateHistory(apiResponseText, false, tourMatch);
     } catch (error: any) {
       updateHistory(error.message, true);
     }
   };
 
-  // --- Logic handleSend từ code gốc CỦA BẠN ---
   const handleSend = () => {
     if (!message.trim()) return;
 
@@ -250,15 +414,11 @@ export const ChatbotScreen: React.FC = () => {
     setMessage("");
     generateBotResponse(newHistory);
   };
-  // ------------------------------------
 
   return (
-    <View style={styles.container} edges={[]}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={whiteBackground} />
-      {/* --- Header Đẹp (Đã thêm nút back) --- */}
-      <View
-        style={[styles.header, { paddingTop: 10 }]}
-      >
+      <View style={[styles.header, { paddingTop: 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -272,7 +432,6 @@ export const ChatbotScreen: React.FC = () => {
               width={24}
               height={24}
               color={primaryBlue}
-              style={styles.headerIcon}
             />
             <Text style={styles.headerTitle}>Travel Assistant</Text>
           </View>
@@ -281,19 +440,17 @@ export const ChatbotScreen: React.FC = () => {
 
         <View style={styles.headerRightPlaceholder} />
       </View>
-      {/* ------------------------------------ */}
 
       <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        // --- Logic Keyboard từ code gốc CỦA BẠN ---
         keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
       >
         <FlatList
           ref={flatListRef}
           data={chatHistory}
           keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => <ChatMessage chat={item} />} // Dùng component nội tuyến
+          renderItem={({ item }) => <ChatMessage chat={item} navigation={navigation} />}
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -302,7 +459,6 @@ export const ChatbotScreen: React.FC = () => {
                 width={60}
                 height={60}
                 color={greyText}
-                style={{ marginBottom: 15 }}
               />
               <Text style={styles.emptyStateText}>
                 Chào mừng bạn đến với Travel Assistant!{"\n"}Hãy đặt câu hỏi về
@@ -334,12 +490,10 @@ export const ChatbotScreen: React.FC = () => {
           </Animated.View>
         )}
 
-        {/* --- Input Container (Kết hợp Style đẹp + Logic gốc) --- */}
         <View
           style={[
-            styles.inputContainer, // Style đẹp
+            styles.inputContainer,
             {
-              // Logic Keyboard từ code gốc CỦA BẠN
               paddingBottom: keyboardVisible ? 0 : Math.max(insets.bottom, 12),
               height: 90,
               justifyContent: "center",
@@ -348,7 +502,7 @@ export const ChatbotScreen: React.FC = () => {
           ]}
         >
           <TextInput
-            style={styles.input} // Style đẹp
+            style={styles.input}
             value={message}
             onChangeText={setMessage}
             placeholder="Nhập câu hỏi của bạn..."
@@ -360,7 +514,7 @@ export const ChatbotScreen: React.FC = () => {
           <TouchableOpacity
             onPress={handleSend}
             style={[
-              styles.sendButton, // Style đẹp
+              styles.sendButton,
               (!message.trim() || isLoading) && styles.sendButtonDisabled,
             ]}
             disabled={!message.trim() || isLoading}
@@ -368,14 +522,11 @@ export const ChatbotScreen: React.FC = () => {
             <Text style={styles.sendButtonText}>Gửi</Text>
           </TouchableOpacity>
         </View>
-        {/* ------------------------------------ */}
-        
       </KeyboardAvoidingView>
     </View>
   );
 };
 
-// --- StyleSheet Đẹp ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -410,9 +561,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 5,
-  },
-  headerIcon: {
-    marginRight: 10,
+    gap: 10,
   },
   headerTitle: {
     fontSize: 22,
@@ -439,6 +588,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 80,
     paddingHorizontal: 30,
+    gap: 15,
   },
   emptyStateText: {
     fontSize: 15,
@@ -498,11 +648,11 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
   },
   userMessage: {
-    backgroundColor: userBubbleBackground,
     borderBottomRightRadius: 6,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     borderBottomLeftRadius: 16,
+    overflow: 'hidden',
   },
   errorMessage: {
     backgroundColor: "#FFEBEE",
@@ -521,8 +671,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: "row",
-    // alignItems: "flex-end", // Bị ghi đè bởi inline style
-    paddingTop: 12, // Điều chỉnh padding
+    paddingTop: 12,
     paddingHorizontal: 15,
     backgroundColor: whiteBackground,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -538,12 +687,11 @@ const styles = StyleSheet.create({
     backgroundColor: lightBlueBackground,
     borderRadius: 25,
     paddingHorizontal: 18,
-    paddingVertical: 10, // Điều chỉnh padding
+    paddingVertical: 10,
     fontSize: 16,
     color: darkText,
-    maxHeight: 100, // Giữ lại từ code gốc
-    // minHeight: 45, // Bỏ, để container `height: 90` xử lý
-    textAlignVertical: "top", // Giữ lại từ code gốc
+    maxHeight: 100,
+    textAlignVertical: "top",
     marginRight: 10,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: borderColorLight,
@@ -561,7 +709,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
-    height: 45, // Đặt chiều cao cố định cho nút
+    height: 45,
   },
   sendButtonDisabled: {
     backgroundColor: buttonDisabledBackground,
@@ -572,5 +720,89 @@ const styles = StyleSheet.create({
     color: whiteBackground,
     fontWeight: "600",
     fontSize: 16,
+  },
+  // Tour Card Styles
+  tourCard: {
+    backgroundColor: whiteBackground,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginVertical: 4,
+  },
+  tourImageContainer: {
+    width: '100%',
+    height: 160,
+    position: 'relative',
+  },
+  tourImage: {
+    width: '100%',
+    height: '100%',
+  },
+  tourImageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+  },
+  tourCardContent: {
+    padding: 14,
+  },
+  tourCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: darkText,
+    marginBottom: 10,
+    lineHeight: 24,
+  },
+  tourInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 6,
+  },
+  tourInfoText: {
+    fontSize: 13,
+    color: greyText,
+    flex: 1,
+  },
+  tourCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: borderColorLight,
+  },
+  tourPriceContainer: {
+    flex: 1,
+  },
+  tourPriceLabel: {
+    fontSize: 12,
+    color: greyText,
+    marginBottom: 2,
+  },
+  tourPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FF6B35',
+  },
+  viewTourButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 6,
+  },
+  viewTourButtonText: {
+    color: whiteBackground,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
