@@ -1,7 +1,4 @@
-import {
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   FlatList,
   Image,
@@ -13,14 +10,18 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from "react-native";
-import travel, { RootStackParamList } from "./HomeScreen";
-import { getAllDestinations, getReviews, getUsers } from "../api/apiClient";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+
+// Import từ file types mới tạo
+import { RootStackParamList, Travel, Itinerary } from "../types/types"; 
+import { getAllDestinations, getReviews, getUsers, getAllTravel } from "../api/apiClient";
 import { colors } from "../constants/colors";
 import ReviewComponent from "../components/ReviewComponent";
 import { ButtonComponent } from "../components/ButtonComponent";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { TextComponent } from "../components/TextComponent";
 
+// Interface phụ
 export interface Review {
   comment: string;
   rating: number;
@@ -40,28 +41,46 @@ export interface Destination {
   name: string;
 }
 
-type AppStackParamList = RootStackParamList & {
-  BookingTour: { travel: travel; destinationName: string };
-  TravelDetail: { travel: travel };
-};
-type StackProps = NativeStackScreenProps<AppStackParamList, "TravelDetail">;
+type Props = NativeStackScreenProps<RootStackParamList, "TravelDetail">;
 
-const useTravelDetails = () => {
-  const [destinations, setDestinations] = React.useState<Destination[]>([]);
-  const [allReviews, setAllReviews] = React.useState<Review[]>([]);
-  const [users, setUsers] = React.useState<User[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<Error | null>(null);
+const TravelDetail: React.FC<Props> = ({ navigation, route }) => {
+  // Lấy params: có thể là travel object hoặc id
+  const { travel: paramTravel, id: paramId } = route.params;
+
+  const [travelData, setTravelData] = useState<Travel | null>(paramTravel || null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [allReviews, setAllReviews] = useState<Review[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
+        
+        // 1. Nếu chưa có travel data (tức là đi từ ExploreScreen chỉ có ID), phải tìm travel trước
+        let currentTravel = travelData;
+        
+        if (!currentTravel && paramId) {
+            // Giả sử bạn có API getTravelById. Nếu không, lấy all rồi find
+            const allTravels = await getAllTravel(); 
+            const found = (allTravels as Travel[]).find(t => t.id === paramId);
+            if (found) {
+                currentTravel = found;
+                setTravelData(found);
+            } else {
+                throw new Error("Không tìm thấy thông tin tour");
+            }
+        }
+
+        // 2. Lấy các dữ liệu phụ trợ
         const [destData, reviewData, userData] = await Promise.all([
           getAllDestinations(),
           getReviews(),
           getUsers(),
         ]);
+
         setDestinations(destData);
         setAllReviews(reviewData);
         setUsers(userData);
@@ -71,44 +90,36 @@ const useTravelDetails = () => {
       } finally {
         setIsLoading(false);
       }
-    })();
-  }, []);
+    };
 
+    fetchData();
+  }, [paramId]); // Chỉ chạy lại khi ID thay đổi
+
+  // --- Các hàm Helper ---
   const getDestination = (destinationID: string | undefined): Destination | undefined => {
     if (!destinationID) return undefined;
     return destinations.find((dest) => dest.id === destinationID);
   };
 
-  const getReviewUser = (review: Review) => {
-    return users.find((user) => user.id === review.userID);
-  };
-
-  return { allReviews, users, isLoading, error, getDestination, getReviewUser };
-};
-
-const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
-  const { travel } = route.params;
-
-  const { allReviews, users, isLoading, error, getDestination, getReviewUser } =
-    useTravelDetails();
-
   const filteredReviews = useMemo(() => {
-    return allReviews.filter(review => review.tourID === travel.id);
-  }, [allReviews, travel.id]);
+    if (!travelData) return [];
+    return allReviews.filter(review => review.tourID === travelData.id);
+  }, [allReviews, travelData]);
 
   const destination = useMemo(() => {
-    if (travel.destinationIDs && travel.destinationIDs.length > 0) {
-      const firstDestinationID = travel.destinationIDs[0];
-      return getDestination(firstDestinationID);
+    if (travelData?.destinationIDs && travelData.destinationIDs.length > 0) {
+      return getDestination(travelData.destinationIDs[0]);
     }
     return undefined;
-  }, [getDestination, travel.destinationIDs]);
+  }, [destinations, travelData]);
 
   const handleBooking = () => {
-    navigation.navigate("BookingTour", {
-      travel: travel,
-      destinationName: destination?.name || "",
-    });
+    if (travelData) {
+      navigation.navigate("BookingTour", {
+        travel: travelData,
+        destinationName: destination?.name || "",
+      });
+    }
   };
 
   const renderReview = ({ item }: { item: Review }) => {
@@ -116,68 +127,65 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
     return <ReviewComponent review={item} user={user} />;
   };
 
-  if (isLoading) {
+  // --- Render Loading / Error ---
+  if (isLoading && !travelData) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#0194F3" />
       </View>
     );
   }
-  if (error) {
+
+  if (error || !travelData) {
     return (
       <View style={styles.centerContainer}>
-        <TextComponent text="Lỗi tải dữ liệu chi tiết" color={colors.red} />
+        <TextComponent text="Lỗi tải dữ liệu hoặc không tìm thấy tour" color={colors.red} />
+        <ButtonComponent 
+            text="Quay lại" 
+            type="button" 
+            onPress={() => navigation.goBack()} 
+            backgroundColor={colors.blue_splash}
+            textColor="white"
+        />
       </View>
     );
   }
 
+  // --- Render Main Content ---
   return (
     <SafeAreaView style={styles.screenContainer}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
-      >
-        <Image
-          source={{ uri: travel.images[0] }}
-          style={styles.imgBanner}
-        />
-
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
+        <Image source={{ uri: travelData.images[0] }} style={styles.imgBanner} />
+        
         <View style={styles.contentContainer}>
           <View style={styles.section}>
-            <Text style={styles.overviewTitle}>
-              {travel.title}
-            </Text>
+            <Text style={styles.overviewTitle}>{travelData.title}</Text>
             <View style={styles.infoRow}>
               <FontAwesome name="star" size={16} color="#FFA500" />
               <Text style={[styles.infoText, { color: '#0A2C4D', fontWeight: 'bold' }]}>
-                {travel.averageRating.toFixed(1)}
+                {travelData.averageRating.toFixed(1)}
               </Text>
-              <Text style={styles.infoText}>
-                ({travel.reviewCount} đánh giá)
-              </Text>
+              <Text style={styles.infoText}>({travelData.reviewCount} đánh giá)</Text>
               <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={16} color={colors.grey_text} style={{marginLeft: 10}} />
-                <Text style={styles.infoText}>{travel.departurePoint}</Text>
+                <Ionicons name="location-outline" size={16} color={colors.grey_text} style={{ marginLeft: 10 }} />
+                <Text style={styles.infoText}>{travelData.departurePoint}</Text>
               </View>
             </View>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
-            <Text style={styles.descriptionText}>{travel.description}</Text>
+            <Text style={styles.descriptionText}>{travelData.description}</Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Hành trình</Text>
-            {travel.itinerary.map((item, index) => (
+            {travelData.itinerary.map((item, index) => (
               <View key={index} style={styles.itineraryItem}>
                 <Text style={styles.itineraryTitle}>{item.title}</Text>
                 <Text style={styles.descriptionText}>{item.details}</Text>
-                {travel.images[index + 1] && (
-                  <Image
-                    source={{ uri: travel.images[index + 1] }}
-                    style={styles.itineraryImage}
-                  />
+                {travelData.images[index + 1] && (
+                  <Image source={{ uri: travelData.images[index + 1] }} style={styles.itineraryImage} />
                 )}
               </View>
             ))}
@@ -189,7 +197,7 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
               <FlatList
                 data={filteredReviews}
                 renderItem={renderReview}
-                keyExtractor={(item) => item.tourID.toString() + item.userID}
+                keyExtractor={(item) => item.tourID + item.userID + Math.random()}
                 style={styles.reviewList}
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
@@ -201,34 +209,27 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Dịch vụ được đảm bảo</Text>
             <Text style={styles.itineraryTitle}>Miễn phí hủy trong 24 giờ</Text>
             <Text style={styles.descriptionText}>
-              Bạn có thể được hoàn tiền toàn bộ hoặc một phần cho các vé đã chọn
-              nếu hủy đặt chỗ trong vòng 24 giờ sau khi đặt.
+              Bạn có thể được hoàn tiền toàn bộ hoặc một phần cho các vé đã chọn nếu hủy đặt chỗ trong vòng 24 giờ sau khi đặt.
             </Text>
           </View>
-
         </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color={colors.white} />
       </TouchableOpacity>
 
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Tổng giá</Text>
-          <Text style={styles.priceText}>
-            {travel.price.toLocaleString("vi-VN")} ₫
-          </Text>
+          <Text style={styles.priceText}>{travelData.price.toLocaleString("vi-VN")} ₫</Text>
         </View>
         <View style={styles.bookButtonContainer}>
           <ButtonComponent
             type="button"
             text="Đặt vé ngay"
             textColor={colors.white}
-            onPress={() => handleBooking()}
+            onPress={handleBooking}
             width={"100%"}
             height={50}
             backgroundColor="#0194F3"
@@ -240,144 +241,31 @@ const TravelDetail: React.FC<StackProps> = ({ navigation, route }) => {
   );
 };
 
+// ... Giữ nguyên StyleSheet như cũ ...
 const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.white,
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  imgBanner: {
-    width: "100%",
-    height: 300,
-  },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 8,
-    borderRadius: 20,
-    zIndex: 10,
-  },
-  bookmarkButton: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 8,
-    borderRadius: 20,
-    zIndex: 10,
-  },
-  contentContainer: {
-    marginTop: -30,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 20,
-    paddingBottom: 100,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#0A2C4D",
-    marginBottom: 12,
-  },
-  overviewTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#0A2C4D",
-    marginBottom: 8,
-  },
-  tourTitleText: {
-    fontSize: 16,
-    color: colors.grey_text,
-    lineHeight: 23,
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  infoText: {
-    marginLeft: 5,
-    fontSize: 14,
-    color: colors.grey_text,
-  },
-  descriptionText: {
-    fontSize: 15,
-    color: colors.grey_text,
-    lineHeight: 22,
-  },
-  itineraryItem: {
-    marginBottom: 16,
-  },
-  itineraryTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 6,
-  },
-  itineraryImage: {
-    width: "100%",
-    height: 180,
-    borderRadius: 15,
-    marginTop: 10,
-  },
-  reviewList: {
-    width: "100%",
-  },
-  serviceSection: {
-    borderTopWidth: 1,
-    borderTopColor: colors.light_Blue,
-    paddingTop: 16,
-  },
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.light_Blue,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  priceContainer: {
-    flex: 0.4,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: colors.grey_text,
-  },
-  priceText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#FF7A2F",
-  },
-  bookButtonContainer: {
-    flex: 0.55,
-  },
+    // Copy y nguyên phần styles của bạn vào đây
+    screenContainer: { flex: 1, backgroundColor: colors.white },
+    centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.white },
+    scrollView: { flex: 1, backgroundColor: colors.white },
+    imgBanner: { width: "100%", height: 300 },
+    backButton: { position: "absolute", top: 50, left: 20, backgroundColor: "rgba(0,0,0,0.4)", padding: 8, borderRadius: 20, zIndex: 10 },
+    contentContainer: { marginTop: -30, backgroundColor: colors.white, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 20, paddingBottom: 100 },
+    section: { marginBottom: 24 },
+    sectionTitle: { fontSize: 20, fontWeight: "bold", color: "#0A2C4D", marginBottom: 12 },
+    overviewTitle: { fontSize: 24, fontWeight: "bold", color: "#0A2C4D", marginBottom: 8 },
+    infoRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+    infoText: { marginLeft: 5, fontSize: 14, color: colors.grey_text },
+    descriptionText: { fontSize: 15, color: colors.grey_text, lineHeight: 22 },
+    itineraryItem: { marginBottom: 16 },
+    itineraryTitle: { fontSize: 17, fontWeight: "600", color: "#333", marginBottom: 6 },
+    itineraryImage: { width: "100%", height: 180, borderRadius: 15, marginTop: 10 },
+    reviewList: { width: "100%" },
+    serviceSection: { borderTopWidth: 1, borderTopColor: colors.light_Blue, paddingTop: 16 },
+    bottomBar: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 12, paddingHorizontal: 20, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.light_Blue, elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 5 },
+    priceContainer: { flex: 0.4 },
+    priceLabel: { fontSize: 14, color: colors.grey_text },
+    priceText: { fontSize: 20, fontWeight: "bold", color: "#FF7A2F" },
+    bookButtonContainer: { flex: 0.55 },
 });
 
 export default TravelDetail;
