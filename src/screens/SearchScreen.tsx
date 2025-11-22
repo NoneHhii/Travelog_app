@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar,
+  Alert,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +24,10 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Voice, {
+  SpeechErrorEvent,
+  SpeechResultsEvent,
+} from "@react-native-voice/voice";
 
 // Import RootStackParamList từ RootNavigator để type safety
 type RootStackParamList = {
@@ -76,6 +82,11 @@ export const SearchScreen: React.FC = () => {
     minRating: null,
   });
 
+  // Voice search state
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const pulseAnim = React.useRef(new Animated.Value(1)).current;
+
   const { travels, isLoading, error } = useSearchData();
   const inputRef = React.useRef<TextInput>(null);
 
@@ -85,6 +96,107 @@ export const SearchScreen: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, []);
+
+  // Voice recognition setup
+  // NOTE: Native Voice is commented out for Expo Go compatibility
+  /*
+  useEffect(() => {
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = onSpeechError;
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+  */
+
+  const onSpeechStart = (e: any) => {
+    setIsRecording(true);
+    setVoiceError(null);
+    startPulseAnimation();
+  };
+
+  const onSpeechEnd = (e: any) => {
+    setIsRecording(false);
+    stopPulseAnimation();
+  };
+
+  /*
+  const onSpeechResults = (e: SpeechResultsEvent) => {
+    if (e.value && e.value[0]) {
+      setSearchQuery(e.value[0]);
+      stopRecording();
+    }
+  };
+
+  const onSpeechError = (e: SpeechErrorEvent) => {
+    setIsRecording(false);
+    stopPulseAnimation();
+    setVoiceError(JSON.stringify(e.error));
+    console.error("Voice error: ", e.error);
+  };
+  */
+
+  const startRecording = async () => {
+    try {
+      // MOCK IMPLEMENTATION FOR EXPO GO
+      // Uncomment below for native build
+      // await Voice.start("vi-VN");
+
+      onSpeechStart(null);
+
+      // Simulate recording delay and result
+      setTimeout(() => {
+        const mockResult = "Đà Lạt";
+        setSearchQuery(mockResult);
+        onSpeechEnd(null);
+      }, 2000);
+
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      // await Voice.stop();
+      onSpeechEnd(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleVoiceButtonPress = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const startPulseAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const stopPulseAnimation = () => {
+    pulseAnim.setValue(1);
+    pulseAnim.stopAnimation();
+  };
 
   // Filter và sort logic
   const filteredTravels = useMemo(() => {
@@ -221,13 +333,30 @@ export const SearchScreen: React.FC = () => {
           />
           <TextInput
             ref={inputRef}
-            placeholder="Tìm kiếm điểm đến, tour..."
-            placeholderTextColor={colors.grey_text}
+            placeholder={
+              isRecording ? "Đang nghe..." : "Tìm kiếm điểm đến, tour..."
+            }
+            placeholderTextColor={isRecording ? colors.red : colors.grey_text}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
             returnKeyType="search"
           />
+
+          {/* Voice Button */}
+          <TouchableOpacity
+            onPress={handleVoiceButtonPress}
+            style={styles.voiceButton}
+          >
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <Ionicons
+                name={isRecording ? "mic" : "mic-outline"}
+                size={22}
+                color={isRecording ? colors.red : colors.grey_text}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => setSearchQuery("")}
@@ -529,8 +658,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
   },
+  voiceButton: {
+    padding: 5,
+    marginLeft: 5,
+  },
   clearButton: {
     padding: 5,
+    marginLeft: 5,
   },
   filterBar: {
     flexDirection: "row",
