@@ -242,9 +242,8 @@ const MenuGrid: React.FC = () => (
       />
     </View>
     <View style={styles.menuRow}>
-       {/* Sửa lại title thành Tiếng Việt */}
       <MenuComponent
-        title="Xe Bus"
+        title="Xe khách"
         url={require("../../assets/bus-shuttle.png")}
         bgColor="#FFF0F0"
       />
@@ -376,7 +375,7 @@ const DraggableChatbotButton: React.FC = () => {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { travels, isLoading, error } = useTravelData();
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const handleDetail = useCallback(
     (travel: travel) => {
@@ -412,7 +411,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
-        <HomeHeader onSearchPress={handleSearchPress} name={user.displayName}/>
+        <HomeHeader onSearchPress={handleSearchPress} name={user.displayName} />
         <MenuGrid />
         <OffersSection />
         <TravelSection travels={travels} onPressItem={handleDetail} />
@@ -431,7 +430,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-     backgroundColor: '#F4F7FF', // Nền xanh nhạt cho phần cuộn
+    backgroundColor: '#F4F7FF', // Nền xanh nhạt cho phần cuộn
   },
   centerContainer: {
     flex: 1,
