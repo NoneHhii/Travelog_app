@@ -102,7 +102,7 @@ export const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPr
     <TouchableOpacity style={[styles.optionRow, isLast && styles.optionRowLast]} onPress={onPress} activeOpacity={0.7}>
         <Ionicons name={icon} size={24} color={themeColor} style={styles.optionIcon} />
         <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>{title}</Text> 
+            <Text style={styles.optionTitle}>{title}</Text>
             <Text style={styles.optionContent}>{content}</Text>
         </View>
         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
@@ -111,14 +111,14 @@ export const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPr
 
 type Stack = NativeStackScreenProps<RootStackParamList, 'AccountScreen'>
 
-export const AccountScreen: React.FC<Stack> = ({navigation}) => {
+export const AccountScreen: React.FC<Stack> = ({ navigation }) => {
 
-    const {user, loading} = useAuth();
+    const { user, loading } = useAuth();
 
     const handleService = (id: number) => {
-        
-        switch(id) {
-            case 3: navigation.navigate('SettingScreen', {user});
+
+        switch (id) {
+            case 3: navigation.navigate('SettingScreen', { user });
         }
     }
 
@@ -137,7 +137,7 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                         />
                         <View style={styles.profileInfo}>
                             <View style={styles.profileNameRow}>
-                                <Text style={styles.profileName}>{user.displayName}</Text>
+                                <Text style={styles.profileName}>{user?.displayName || "Khách"}</Text>
                                 <TouchableOpacity>
                                     <Ionicons name="pencil-outline" size={20} color={secondaryTextColor} />
                                 </TouchableOpacity>
@@ -177,7 +177,7 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                 </View>
 
                 <View style={styles.card}>
-                     <Text style={styles.sectionTitle}>Phần thưởng của tôi</Text>
+                    <Text style={styles.sectionTitle}>Phần thưởng của tôi</Text>
                     {rewardsOptions.map((item, index) => (
                         <OptionRow
                             key={item.id}
@@ -190,17 +190,17 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                 </View>
 
                 <View style={styles.card}>
-                     <Text style={styles.sectionTitle}>Dịch vụ</Text>
-                     {serviceOptions.map((item, index) => (
-                         <OptionRow
-                             key={item.id}
-                             icon={item.icon}
-                             title={item.title}
-                             content={item.content}
-                             isLast={index === serviceOptions.length - 1}
-                             onPress={() => handleService(item.id)}
-                         />
-                     ))}
+                    <Text style={styles.sectionTitle}>Dịch vụ</Text>
+                    {serviceOptions.map((item, index) => (
+                        <OptionRow
+                            key={item.id}
+                            icon={item.icon}
+                            title={item.title}
+                            content={item.content}
+                            isLast={index === serviceOptions.length - 1}
+                            onPress={() => handleService(item.id)}
+                        />
+                    ))}
                 </View>
 
             </ScrollView>

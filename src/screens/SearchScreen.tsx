@@ -98,105 +98,87 @@ export const SearchScreen: React.FC = () => {
   }, []);
 
   // Voice recognition setup
-  // NOTE: Native Voice is commented out for Expo Go compatibility
-  /*
-  useEffect(() => {
-    Voice.onSpeechStart = onSpeechStart;
-    Voice.onSpeechEnd = onSpeechEnd;
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
+  // useEffect(() => {
+  //   Voice.onSpeechStart = onSpeechStart;
+  //   Voice.onSpeechEnd = onSpeechEnd;
+  //   Voice.onSpeechResults = onSpeechResults;
+  //   Voice.onSpeechError = onSpeechError;
 
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, []);
-  */
+  //   return () => {
+  //     Voice.destroy().then(Voice.removeAllListeners);
+  //   };
+  // }, []);
 
-  const onSpeechStart = (e: any) => {
-    setIsRecording(true);
-    setVoiceError(null);
-    startPulseAnimation();
-  };
+  // const onSpeechStart = (e: any) => {
+  //   setIsRecording(true);
+  //   setVoiceError(null);
+  //   startPulseAnimation();
+  // };
 
-  const onSpeechEnd = (e: any) => {
-    setIsRecording(false);
-    stopPulseAnimation();
-  };
+  // const onSpeechEnd = (e: any) => {
+  //   setIsRecording(false);
+  //   stopPulseAnimation();
+  // };
 
-  /*
-  const onSpeechResults = (e: SpeechResultsEvent) => {
-    if (e.value && e.value[0]) {
-      setSearchQuery(e.value[0]);
-      stopRecording();
-    }
-  };
+  // const onSpeechResults = (e: SpeechResultsEvent) => {
+  //   if (e.value && e.value[0]) {
+  //     setSearchQuery(e.value[0]);
+  //     stopRecording();
+  //   }
+  // };
 
-  const onSpeechError = (e: SpeechErrorEvent) => {
-    setIsRecording(false);
-    stopPulseAnimation();
-    setVoiceError(JSON.stringify(e.error));
-    console.error("Voice error: ", e.error);
-  };
-  */
+  // const onSpeechError = (e: SpeechErrorEvent) => {
+  //   setIsRecording(false);
+  //   stopPulseAnimation();
+  //   setVoiceError(JSON.stringify(e.error));
+  //   console.error("Voice error: ", e.error);
+  // };
 
-  const startRecording = async () => {
-    try {
-      // MOCK IMPLEMENTATION FOR EXPO GO
-      // Uncomment below for native build
-      // await Voice.start("vi-VN");
+  // const startRecording = async () => {
+  //   try {
+  //     await Voice.start("vi-VN");
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
 
-      onSpeechStart(null);
+  // const stopRecording = async () => {
+  //   try {
+  //     await Voice.stop();
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
 
-      // Simulate recording delay and result
-      setTimeout(() => {
-        const mockResult = "Đà Lạt";
-        setSearchQuery(mockResult);
-        onSpeechEnd(null);
-      }, 2000);
+  // const handleVoiceButtonPress = () => {
+  //   if (isRecording) {
+  //     stopRecording();
+  //   } else {
+  //     startRecording();
+  //   }
+  // };
 
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // const startPulseAnimation = () => {
+  //   Animated.loop(
+  //     Animated.sequence([
+  //       Animated.timing(pulseAnim, {
+  //         toValue: 1.2,
+  //         duration: 500,
+  //         useNativeDriver: true,
+  //       }),
+  //       Animated.timing(pulseAnim, {
+  //         toValue: 1,
+  //         duration: 500,
+  //         useNativeDriver: true,
+  //       }),
+  //     ])
+  //   ).start();
+  // };
 
-  const stopRecording = async () => {
-    try {
-      // await Voice.stop();
-      onSpeechEnd(null);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleVoiceButtonPress = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
-
-  const startPulseAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.2,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  const stopPulseAnimation = () => {
-    pulseAnim.setValue(1);
-    pulseAnim.stopAnimation();
-  };
+  // const stopPulseAnimation = () => {
+  //   pulseAnim.setValue(1);
+  //   pulseAnim.stopAnimation();
+  // };
 
   // Filter và sort logic
   const filteredTravels = useMemo(() => {
@@ -345,7 +327,7 @@ export const SearchScreen: React.FC = () => {
 
           {/* Voice Button */}
           <TouchableOpacity
-            onPress={handleVoiceButtonPress}
+            // onPress={handleVoiceButtonPress}
             style={styles.voiceButton}
           >
             <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>

@@ -411,7 +411,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
-        <HomeHeader onSearchPress={handleSearchPress} name={user.displayName} />
+        <HomeHeader onSearchPress={handleSearchPress} name={user?.displayName || "Khách"} />
         <MenuGrid />
         <OffersSection />
         <TravelSection travels={travels} onPressItem={handleDetail} />
