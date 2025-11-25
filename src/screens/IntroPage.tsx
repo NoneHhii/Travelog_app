@@ -1,6 +1,6 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { createRef, useEffect, useState, useRef } from "react";
-import {Dimensions, FlatList, Image, ScrollView, StyleSheet, View, ViewToken} from 'react-native';
+import {Dimensions, FlatList, Image, ScrollView, StyleSheet, TouchableOpacity, View, ViewToken} from 'react-native';
 import { colors } from "../constants/colors";
 import { RootStackParamList } from "../navigation/RootNavigator";
 import Animated, {
@@ -22,6 +22,9 @@ import * as AuthSession from 'expo-auth-session';
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { makeRedirectUri } from "expo-auth-session";
+import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync, scheduleLocalNotification } from "../utils/Notification";
 
 type IntroPageNavigationProp = StackNavigationProp<RootStackParamList, 'Intro'>;
 
@@ -72,6 +75,12 @@ export const IntroPage: React.FC = () => {
     // console.log('Redirect URI Cần Đăng Ký:', request?.redirectUri);
 
     useEffect(() => {
+        registerForPushNotificationsAsync();
+        const checkStatus = async () => {
+            const { status } = await Notifications.getPermissionsAsync();
+            console.log(`Trạng thái quyền thông báo: ${status}`);
+        };
+        checkStatus();
         if(response?.type === 'success') {
             const {id_token} = response.params;
 
@@ -236,6 +245,16 @@ export const IntroPage: React.FC = () => {
                     
                 />
             </View>
+            <TouchableOpacity 
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 5,
+                }}
+                onPress={() => navigation.navigate("Main")}
+            >
+                <Ionicons name="close" size={28}/>
+            </TouchableOpacity>
         </ScrollView>
     )
 }

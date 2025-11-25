@@ -51,6 +51,10 @@ export default interface travel {
   title: string;
   averageRating: number;
   reviewCount: number;
+  duration: {
+    days: number,
+    nights: number,
+  }
 }
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
@@ -157,7 +161,7 @@ const HomeHeader: React.FC<{ onSearchPress: () => void, name: string }> = ({
     <View style={styles.headerTopRow}>
       <View>
         <TextComponent
-          text={`Xin chào, ${name}`}
+          text={`Xin chào, ${name !== undefined ? name : "bạn mới"}`}
           size={22}
           fontWeight="bold"
           color="#0A2C4D"
@@ -323,15 +327,17 @@ const OffersSection: React.FC = () => (
 interface TravelSectionProps {
   travels: travel[];
   onPressItem: (item: travel) => void;
+  title: string,
 }
 const TravelSection: React.FC<TravelSectionProps> = ({
   travels,
   onPressItem,
+  title,
 }) => (
   <View style={styles.travelSectionContainer}>
     <View style={styles.sectionHeader}>
       <TextComponent
-        text="Những hành trình đang chờ bạn!"
+        text={title}
         size={18}
         fontWeight="bold"
         color="#0A2C4D"
@@ -404,6 +410,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   }
 
+  const filterRecommend = () => {
+    return travels.filter(travel => travel.price > 7000000);
+  }
+
+  const filterReview = () => {
+    return travels.filter(travel => travel.reviewCount > 0);
+  }
+
+  const filterDay = () => {
+    return travels.filter(travel => travel.duration.days >= 5);
+  }
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView
@@ -412,10 +430,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
-        <HomeHeader onSearchPress={handleSearchPress} name={user.displayName}/>
+        <HomeHeader onSearchPress={handleSearchPress} name={user?.displayName}/>
         <MenuGrid />
         <OffersSection />
-        <TravelSection travels={travels} onPressItem={handleDetail} />
+        <TravelSection travels={filterRecommend()} onPressItem={handleDetail} title="Những hành trình đang chờ bạn!"/>
+        <TravelSection travels={filterReview()} onPressItem={handleDetail} title="Địa điểm siêu hot🔥🔥"/>
+        <TravelSection travels={filterDay()} onPressItem={handleDetail} title="Chuyến đi dài ngày🏝"/>
       </ScrollView>
 
       <DraggableChatbotButton />

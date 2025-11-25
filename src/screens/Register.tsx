@@ -15,8 +15,17 @@ export interface UserDB {
     email: string,
     phoneNumber: string,
     profileImageUrl: string,
-    saveTour: [],
+    savedTours: [string],
+    coupons: [string],
+    rank: 'Bronze' | 'Gold' | 'Silve' | 'Platinum',
     uid: string,
+    pointReward: number,
+    lastCheckInDate: Date,
+    checkinStreak: number,
+    search: {
+        count: number,
+        lastUpdated: Date,
+    }
 }
 
 export const Register: React.FC<Stack> = ({navigation}) => {
@@ -32,8 +41,17 @@ export const Register: React.FC<Stack> = ({navigation}) => {
                 email: email,
                 phoneNumber: phoneNumber,
                 profileImageUrl: "",
-                saveTour: [],
+                savedTours: [""],
+                rank: 'Bronze',
+                coupons: ["CHAOBANMOI"],
                 uid: uid,
+                pointReward: 0,
+                lastCheckInDate: null,
+                checkinStreak: 0,
+                search: {
+                    count: 0,
+                    lastUpdated: null,
+                }
             }
 
             const newUser = await createUser(user);

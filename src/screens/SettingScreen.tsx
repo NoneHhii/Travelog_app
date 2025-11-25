@@ -65,7 +65,14 @@ export const SettingScreen: React.FC<Stack> = ({navigation}) => {
                 ))}
             </View>
 
-            <TouchableOpacity style={[styles.optionRow, styles.card]} onPress={() => logout()} activeOpacity={0.7}>
+            <TouchableOpacity 
+                style={[styles.optionRow, styles.card]} 
+                onPress={() => {
+                    logout()
+                    navigation.goBack();
+                }} 
+                activeOpacity={0.7}
+            >
                 <Ionicons name={'log-out'} size={24} color={colors.themeColor} style={styles.optionIcon} />
                 <View style={styles.optionTextContainer}>
                     <Text style={styles.optionTitle}>Đăng xuất</Text> 

@@ -22,8 +22,10 @@ export const Login:React.FC<Stack> = ({navigation}) => {
         .then(userCredential => {
             setLoading(false);
             const user = userCredential.user;
-            // console.log("Login success", user.displayName);
-            navigation.navigate('Main');
+            // console.log("Login success", user);
+            if(user) navigation.navigate('Main');
+            else Alert.alert("Cannot found user", "Warning");
+            
         }) 
         .catch(err => {
             setLoading(false);

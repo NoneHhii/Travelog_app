@@ -16,12 +16,14 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "../constants/colors";
 import { TextComponent } from "../components/TextComponent";
 import { TravelItemGrid } from "../components/TravelItemGrid";
-import { getAllTravel } from "../api/apiClient";
+import { getAllTravel, searchReward } from "../api/apiClient";
 import travel from "./HomeScreen";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useAuth } from "../hooks/useAuth";
+import Toast from "react-native-toast-message";
 
 // Import RootStackParamList từ RootNavigator để type safety
 type RootStackParamList = {
@@ -67,6 +69,7 @@ const useSearchData = () => {
 export const SearchScreen: React.FC = () => {
   const navigation = useNavigation<SearchScreenNavigationProp>();
   const insets = useSafeAreaInsets();
+  const [confirmQuery, setConfirmQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(false);
@@ -78,6 +81,8 @@ export const SearchScreen: React.FC = () => {
 
   const { travels, isLoading, error } = useSearchData();
   const inputRef = React.useRef<TextInput>(null);
+
+  const {user, refreshUser} = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -91,8 +96,8 @@ export const SearchScreen: React.FC = () => {
     let result = travels;
 
     // Filter theo search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
+    if (confirmQuery.trim()) {
+      const query = confirmQuery.toLowerCase().trim();
       result = result.filter(
         (travel) =>
           travel.title.toLowerCase().includes(query) ||
@@ -144,7 +149,36 @@ export const SearchScreen: React.FC = () => {
     }
 
     return result;
-  }, [travels, searchQuery, sortBy, filter]);
+  }, [travels, confirmQuery, sortBy, filter]);
+
+  const trackSearchRewardEvent = async() => {
+    if(!user || confirmQuery.trim().length === 0) return;
+    console.log("Text:", confirmQuery);
+    try {
+      console.log("Ghi nhaanj");
+      await searchReward(user.uid, 40);
+      refreshUser();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Đã nhận phần thưởng',
+        visibilityTime: 3000,
+      })
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  const handleSearchSubmit = () => {
+    const query = searchQuery.trim();
+    
+    setConfirmQuery(query);
+
+    if(query.length > 0) trackSearchRewardEvent();
+
+    inputRef.current?.blur();
+  }
+
 
   const handleDetail = useCallback(
     (travel: travel) => {
@@ -227,10 +261,14 @@ export const SearchScreen: React.FC = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             returnKeyType="search"
+            onSubmitEditing={handleSearchSubmit}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
-              onPress={() => setSearchQuery("")}
+              onPress={() => {
+                setSearchQuery("");
+                setConfirmQuery("");
+              }}
               style={styles.clearButton}
             >
               <Ionicons

@@ -9,12 +9,14 @@ interface AuthContextType {
     user: UserDB | null; 
     loading: boolean;
     logout: () => void,
+    refreshUser: () => void,
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
     logout: () => {},
+    refreshUser: () => {},
 });
 
 export const useAuth = () => {
@@ -26,6 +28,9 @@ export const AuthProvider = ({children}) => {
     const [user, setUser] = useState<UserDB | null>(null);
     const [users, setUsers] = useState<UserDB[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const refreshUser = () => setRefreshTrigger(prev => prev + 1);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -64,7 +69,7 @@ export const AuthProvider = ({children}) => {
         }
 
         fetchUser();
-    }, [firebaseUser, users]);
+    }, [firebaseUser, users, refreshTrigger]);
 
     const logout = () => {
         auth.signOut().then(() => {
@@ -77,6 +82,7 @@ export const AuthProvider = ({children}) => {
         user,
         loading,
         logout,
+        refreshUser,
     };
 
     return (

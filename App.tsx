@@ -7,6 +7,8 @@ import { SplashScreen } from './src/screens/SplashScreen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/hooks/useAuth';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from './src/components/ToastConfig';
 
 export default function App() {
   return (
@@ -15,6 +17,7 @@ export default function App() {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         
           <RootNavigator/>
+          <Toast config={toastConfig}/>
       </SafeAreaView>
     </SafeAreaProvider>
     </AuthProvider>

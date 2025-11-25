@@ -17,6 +17,11 @@ import { Register, UserDB } from "../screens/Register";
 import { AccountScreen } from "../screens/AccountScreen";
 import { SettingScreen } from "../screens/SettingScreen";
 import { useAuth } from "../hooks/useAuth";
+import { Assign, AssignProp } from "../screens/Assign";
+import { CardPayment } from "../screens/CardPayment";
+import { MyCoupon } from "../screens/MyCoupon";
+import { ContactUs } from "../screens/ContactUs";
+import { RewardZone } from "../screens/RewardZone";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -33,7 +38,12 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   AccountScreen: undefined;
-  SettingScreen: {user: UserDB}
+  SettingScreen: {user: UserDB},
+  Assign: {prop: AssignProp},
+  CardPayment: undefined,
+  MyCoupon: undefined,
+  ContactUs: undefined,
+  RewardZone: undefined,
 };
 
 const Stack = createStackNavigator();
@@ -164,6 +174,46 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="SettingScreen"
           component={SettingScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="Assign"
+          component={Assign}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="CardPayment"
+          component={CardPayment}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="MyCoupon"
+          component={MyCoupon}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="ContactUs"
+          component={ContactUs}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="RewardZone"
+          component={RewardZone}
           options={{
             headerShown: false,
           }}

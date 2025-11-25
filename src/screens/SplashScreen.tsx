@@ -8,8 +8,22 @@ import { RootStackParamList } from "../navigation/RootNavigator";
 import { fontFamilies } from "../types/fontFamilies";
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from "../hooks/useAuth";
+import { scheduleLocalNotification } from "../utils/Notification";
+import * as Notifications from 'expo-notifications';
 
 type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, "Splash">;
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true, 
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        // THÊM: Hai thuộc tính bắt buộc trong interface NotificationBehavior mới
+        shouldShowBanner: true, 
+        shouldShowList: true, 
+    }),
+});
+scheduleLocalNotification();
 
 export const SplashScreen : React.FC = () => {
 

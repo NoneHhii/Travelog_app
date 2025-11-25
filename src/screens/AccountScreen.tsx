@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/RootNavigator";
+import { AssignProp } from "./Assign";
 
 const lightBackground = "#F4F7FF";
 const themeColor = "#0194F3";
@@ -48,24 +49,28 @@ const rewardsOptions = [
         icon: "gift-outline" as const,
         title: "0 Điểm",
         content: "Đổi điểm lấy coupon và tìm hiểu cách kiếm thêm!",
+        description: "",
     },
     {
         id: 2,
         icon: "flag-outline" as const,
         title: "Nhiệm vụ của tôi",
         content: "Hoàn thành nhiều Nhiệm vụ hơn, mở khóa nhiều phần thưởng hơn",
+        description: "",
     },
     {
         id: 3,
         icon: "pricetags-outline" as const,
         title: "Coupon của tôi",
         content: "Xem các coupon bạn có thể sử dụng ngay bây giờ",
+        description: "đăng nhập hoặc đăng ký ngay để nhận các mã giảm giá hấp dẫn phù hợp với nhu cầu của bạn",
     },
     {
         id: 4,
         icon: "ribbon-outline" as const,
         title: "Khu vực thưởng",
         content: "Theo dõi các chương trình phần thưởng bạn đã tham gia",
+        description: "đăng nhập hoặc đăng ký ngay để nhận các chương trình khuyến mãi hấp dẫn phù hợp với nhu cầu của bạn",
     },
 ];
 
@@ -79,7 +84,7 @@ const serviceOptions = [
     {
         id: 2,
         icon: "headset-outline" as const,
-        title: "Dịch vụ khách hàng",
+        title: "Liên hệ với chúng tôi",
         content: "Nhận trợ giúp từ Dịch vụ khách hàng của chúng tôi",
     },
     {
@@ -115,10 +120,33 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
 
     const {user, loading} = useAuth();
 
+    const handleCard = () => {
+        const prop : AssignProp = {
+            title: 'Thanh toán',
+            description: "Thêm thông tin thẻ tín dụng của bạn vào Thanh toán và tận hưởng thanh toán liền mạch chỉ bằng một lần chạm!"
+        }
+        if(user) navigation.navigate("CardPayment")  
+        else navigation.navigate("Assign", {prop});
+    }
+
+    const handleAward = (title: string, description: string, id: number) => {
+        const prop : AssignProp = {
+            title: title,
+            description: description
+        }
+        if(!user) navigation.navigate("Assign", {prop});
+        else {
+            if(id === 3) navigation.navigate('MyCoupon');
+            else if(id === 4) navigation.navigate('RewardZone');
+        }
+    }
+
     const handleService = (id: number) => {
-        
-        switch(id) {
-            case 3: navigation.navigate('SettingScreen', {user});
+
+        if(id === 2) {
+            navigation.navigate('ContactUs');
+        } else if(id === 3) {
+            navigation.navigate('SettingScreen', {user});
         }
     }
 
@@ -130,25 +158,39 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                 contentContainerStyle={styles.scrollContentContainer}
             >
                 <View style={styles.card}>
-                    <View style={styles.profileHeader}>
-                        <Image
-                            style={styles.avatar}
-                            source={{ uri: 'https://xsgames.co/randomusers/avatar.php?g=pixel' }}
-                        />
-                        <View style={styles.profileInfo}>
-                            <View style={styles.profileNameRow}>
-                                <Text style={styles.profileName}>{user.displayName}</Text>
-                                <TouchableOpacity>
-                                    <Ionicons name="pencil-outline" size={20} color={secondaryTextColor} />
-                                </TouchableOpacity>
+                    {user ? (
+                        <View style={styles.profileHeader}>
+                            <Image
+                                style={styles.avatar}
+                                source={{ uri: 'https://xsgames.co/randomusers/avatar.php?g=pixel' }}
+                            />
+                            <View style={styles.profileInfo}>
+                                <View style={styles.profileNameRow}>
+                                    <Text style={styles.profileName}>{user ? user.displayName : ""}</Text>
+                                    <TouchableOpacity>
+                                        <Ionicons name="pencil-outline" size={20} color={secondaryTextColor} />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={styles.profileDetail}>Đã đăng nhập bằng Google</Text>
+                                <Text style={styles.profileDetail}>0 Bài đăng</Text>
                             </View>
-                            <Text style={styles.profileDetail}>Đã đăng nhập bằng Google</Text>
-                            <Text style={styles.profileDetail}>0 Bài đăng</Text>
                         </View>
-                    </View>
-                    <TouchableOpacity style={styles.profileButton} activeOpacity={0.7}>
-                        <Text style={styles.profileButtonText}>Xem hồ sơ của tôi</Text>
-                    </TouchableOpacity>
+                    ): (
+                        <Text>Trở thành thành viên và tận hưởng những lợi ích</Text>
+                    )}
+                    {user ? (
+                        <TouchableOpacity style={styles.profileButton} activeOpacity={0.7}>
+                            <Text style={styles.profileButtonText}>Xem hồ sơ của tôi</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity 
+                            style={styles.profileButton} 
+                            activeOpacity={0.7}
+                            onPress={() => navigation.navigate("Login")}
+                        >
+                            <Text style={styles.profileButtonText}>Đăng nhập</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 <LinearGradient
@@ -172,6 +214,7 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                             title={item.title}
                             content={item.content}
                             isLast={index === paymentOptions.length - 1}
+                            onPress={() => handleCard()}
                         />
                     ))}
                 </View>
@@ -182,9 +225,10 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                         <OptionRow
                             key={item.id}
                             icon={item.icon}
-                            title={item.title}
+                            title={index === 0 ? `${user?.pointReward.toString() || '0'} điểm` : item.title}
                             content={item.content}
                             isLast={index === rewardsOptions.length - 1}
+                            onPress={() => handleAward(item.title, item.description, item.id)}
                         />
                     ))}
                 </View>
