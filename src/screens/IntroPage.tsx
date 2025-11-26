@@ -22,6 +22,7 @@ import * as AuthSession from 'expo-auth-session';
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { makeRedirectUri } from "expo-auth-session";
+import { LinearGradient } from 'expo-linear-gradient';
 
 type IntroPageNavigationProp = StackNavigationProp<RootStackParamList, 'Intro'>;
 
@@ -144,7 +145,11 @@ export const IntroPage: React.FC = () => {
     ])
 
     return (
-        <ScrollView style={{position: 'relative', marginBottom: 8}}>
+        <LinearGradient
+            colors={['#e4f2ff', '#fefeff', '#e7fbff']}
+            style={styles.gradientWrapper}
+        >
+        <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 32 }}>
             <Animated.FlatList
                 data={IntroData}
                 renderItem={renderImg}
@@ -237,10 +242,20 @@ export const IntroPage: React.FC = () => {
                 />
             </View>
         </ScrollView>
+        </LinearGradient>
     )
 }
 
 const styles = StyleSheet.create({
+    gradientWrapper: {
+        flex: 1
+    },
+
+    scrollView: {
+        position: 'relative',
+        marginBottom: 8
+    },
+
     container: {
         alignItems: 'center',
         // gap: 20,
@@ -276,20 +291,29 @@ const styles = StyleSheet.create({
     },
 
     loginContain: {
-        backgroundColor: colors.white, 
-        height: height*20/100,
+        backgroundColor: 'rgba(255,255,255,0.95)', 
+        minHeight: height*18/100,
         alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: -30,
+        paddingVertical: 24,
+        borderRadius: 24,
+        shadowColor: '#0a3c8c',
+        shadowOpacity: 0.08,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
     },
 
     btnContainer: {
-        borderWidth: 1,
-        borderRadius: 15,
+        borderRadius: 18,
         width: '80%',
-        height: 40,
+        height: 50,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: 15,
-        
+        backgroundColor: 'rgba(96,239,255,0.08)',
+        borderColor: 'rgba(0,97,255,0.25)'
     }
 })

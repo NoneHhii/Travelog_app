@@ -25,10 +25,6 @@ import { Ionicons } from "@expo/vector-icons";
 import TypingIndicator from "../components/TypingIndicator";
 import ChatbotIcon from "../components/ChatbotIcon";
 import { LinearGradient } from "expo-linear-gradient";
-import Voice, {
-  SpeechErrorEvent,
-  SpeechResultsEvent,
-} from "@react-native-voice/voice";
 
 // --- Bảng màu được tinh chỉnh (Super Product) ---
 const primaryBlue = "#0194F3";
@@ -280,11 +276,6 @@ export const ChatbotScreen: React.FC = () => {
   const [tours, setTours] = useState<Tour[]>([]);
   const navigation = useNavigation();
 
-  // Voice search state
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
-
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -309,89 +300,6 @@ export const ChatbotScreen: React.FC = () => {
       keyboardWillHide.remove();
     };
   }, []);
-
-  // Voice recognition setup
-  // useEffect(() => {
-  //   Voice.onSpeechStart = onSpeechStart;
-  //   Voice.onSpeechEnd = onSpeechEnd;
-  //   Voice.onSpeechResults = onSpeechResults;
-  //   Voice.onSpeechError = onSpeechError;
-
-  //   return () => {
-  //     Voice.destroy().then(Voice.removeAllListeners);
-  //   };
-  // }, []);
-
-  // const onSpeechStart = (e: any) => {
-  //   setIsRecording(true);
-  //   setVoiceError(null);
-  //   startPulseAnimation();
-  // };
-
-  // const onSpeechEnd = (e: any) => {
-  //   setIsRecording(false);
-  //   stopPulseAnimation();
-  // };
-
-  // const onSpeechResults = (e: SpeechResultsEvent) => {
-  //   if (e.value && e.value[0]) {
-  //     setMessage(e.value[0]);
-  //     stopRecording();
-  //   }
-  // };
-
-  // const onSpeechError = (e: SpeechErrorEvent) => {
-  //   setIsRecording(false);
-  //   stopPulseAnimation();
-  //   setVoiceError(JSON.stringify(e.error));
-  //   console.error("Voice error: ", e.error);
-  // };
-
-  // const startRecording = async () => {
-  //   try {
-  //     await Voice.start("vi-VN");
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
-  // const stopRecording = async () => {
-  //   try {
-  //     await Voice.stop();
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
-  // const handleVoiceButtonPress = () => {
-  //   if (isRecording) {
-  //     stopRecording();
-  //   } else {
-  //     startRecording();
-  //   }
-  // };
-
-  // const startPulseAnimation = () => {
-  //   Animated.loop(
-  //     Animated.sequence([
-  //       Animated.timing(pulseAnim, {
-  //         toValue: 1.2,
-  //         duration: 500,
-  //         useNativeDriver: true,
-  //       }),
-  //       Animated.timing(pulseAnim, {
-  //         toValue: 1,
-  //         duration: 500,
-  //         useNativeDriver: true,
-  //       }),
-  //     ])
-  //   ).start();
-  // };
-
-  // const stopPulseAnimation = () => {
-  //   pulseAnim.setValue(1);
-  //   pulseAnim.stopAnimation();
-  // };
 
   useEffect(() => {
     setChatHistory([
@@ -597,31 +505,12 @@ export const ChatbotScreen: React.FC = () => {
             style={styles.input}
             value={message}
             onChangeText={setMessage}
-            placeholder={isRecording ? "Đang nghe..." : "Nhập câu hỏi của bạn..."}
-            placeholderTextColor={isRecording ? "#EF5350" : greyText}
+            placeholder="Nhập câu hỏi của bạn..."
+            placeholderTextColor={greyText}
             multiline
             maxLength={500}
             editable={!isLoading}
           />
-
-          {/* Voice Button */}
-          <TouchableOpacity
-            // onPress={handleVoiceButtonPress}
-            style={{
-              padding: 8,
-              marginRight: 8,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-              <Ionicons
-                name={isRecording ? "mic" : "mic-outline"}
-                size={24}
-                color={isRecording ? "#EF5350" : greyText}
-              />
-            </Animated.View>
-          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleSend}
