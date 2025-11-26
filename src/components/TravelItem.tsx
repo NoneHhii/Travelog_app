@@ -5,14 +5,9 @@ import { colors } from "../constants/colors";
 import { TextComponent } from "./TextComponent";
 import { Travel } from "../types/types"; // Import từ file type chung
 
-
-interface travelProps {
-  travel: travel;
-  sale?: number;
-  size?: number; // Prop này không còn dùng nhiều, kích thước sẽ tự co dãn
-  RadiusTop?: number;
-  RadiusBottom?: number;
-  handleDetail?: (travel: travel) => void;
+interface TravelItemProps {
+  travel: Travel;
+  onPress: (travel: Travel) => void;
 }
 
 export const TravelItem: React.FC<TravelItemProps> = ({
@@ -83,10 +78,6 @@ export const TravelItem: React.FC<TravelItemProps> = ({
           />
         </View>
       </View>
-
-      <TouchableOpacity style={styles.btnSave}>
-        <Image source={require('../../assets/save.png')}/>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -102,8 +93,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    marginBottom: 10, // Khoảng cách giữa các thẻ (nếu dùng trong Vertical List)
-    position: 'relative',
+    marginBottom: 10,
     overflow: 'hidden'
   },
   imageContainer: {
@@ -143,10 +133,4 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-
-  btnSave: {
-    position: 'absolute',
-    top: 5,
-    right: 10,
-  }
 });
