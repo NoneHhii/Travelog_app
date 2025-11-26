@@ -22,6 +22,7 @@ import { CardPayment } from "../screens/CardPayment";
 import { MyCoupon } from "../screens/MyCoupon";
 import { ContactUs } from "../screens/ContactUs";
 import { RewardZone } from "../screens/RewardZone";
+import { FilteredToursScreen } from "../screens/FilteredToursScreen";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -44,6 +45,7 @@ export type RootStackParamList = {
   MyCoupon: undefined,
   ContactUs: undefined,
   RewardZone: undefined,
+  FilteredTours: {transportType: "Máy bay" | "Xe khách" | "Tàu thuyền"}
 };
 
 const Stack = createStackNavigator();
@@ -214,6 +216,14 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="RewardZone"
           component={RewardZone}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="FilteredTours"
+          component={FilteredToursScreen}
           options={{
             headerShown: false,
           }}

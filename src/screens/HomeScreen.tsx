@@ -54,7 +54,9 @@ export default interface travel {
   duration: {
     days: number,
     nights: number,
-  }
+  },
+  transport: "Máy bay" | "Xe khách" | "Tàu thuyền",
+  status: boolean,
 }
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
@@ -213,7 +215,11 @@ const HomeHeader: React.FC<{ onSearchPress: () => void, name: string }> = ({
   </LinearGradient>
 );
 
-const MenuGrid: React.FC = () => (
+interface MenuGProp {
+  navigate: (string) => void,
+}
+
+const MenuGrid: React.FC<MenuGProp> = ({navigate}) => (
   <View style={styles.menuGridContainer}>
     <TextComponent
       text="Bạn muốn khám phá điều gì?"
@@ -222,35 +228,25 @@ const MenuGrid: React.FC = () => (
       color="#0A2C4D"
       styles={styles.sectionTitle}
     />
+    
     <View style={styles.menuRow}>
-      {/* Sửa lại title thành Tiếng Việt */}
-      <MenuComponent
+       {/* Sửa lại title thành Tiếng Việt */}
+       <MenuComponent
         title="Chuyến bay"
         url={require("../../assets/airplane.png")}
         bgColor="#EAF2FF"
+        onPress={() => navigate("Máy bay")}
       />
-      <MenuComponent
-        title="Khách sạn"
-        url={require("../../assets/hotel.png")}
-        bgColor="#F0EAFE"
-      />
-      <MenuComponent
-        title="Thuê xe"
-        url={require("../../assets/car-rental.png")}
-        bgColor="#E5F8F0"
-      />
-      <MenuComponent
+       <MenuComponent
         title="Hoạt động"
         url={require("../../assets/think-to-do.png")}
         bgColor="#FFF9E6"
       />
-    </View>
-    <View style={styles.menuRow}>
-       {/* Sửa lại title thành Tiếng Việt */}
       <MenuComponent
         title="Xe Bus"
         url={require("../../assets/bus-shuttle.png")}
         bgColor="#FFF0F0"
+        onPress={() => navigate("Xe khách")}
       />
       <MenuComponent
         title="Sự kiện"
@@ -261,6 +257,7 @@ const MenuGrid: React.FC = () => (
         title="Du thuyền"
         url={require("../../assets/cruise-ship.png")}
         bgColor="#EAF8FF"
+        onPress={() => navigate("Tàu thuyền")}
       />
       <View style={{ width: 70, marginHorizontal: 8 }} />
     </View>
@@ -422,6 +419,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return travels.filter(travel => travel.duration.days >= 5);
   }
 
+  const navigate = (string) => {
+    navigation.navigate('FilteredTours', {transportType: string});
+  }
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView
@@ -431,7 +432,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
         <HomeHeader onSearchPress={handleSearchPress} name={user?.displayName}/>
-        <MenuGrid />
+        <MenuGrid navigate={navigate}/>
         <OffersSection />
         <TravelSection travels={filterRecommend()} onPressItem={handleDetail} title="Những hành trình đang chờ bạn!"/>
         <TravelSection travels={filterReview()} onPressItem={handleDetail} title="Địa điểm siêu hot🔥🔥"/>
@@ -528,6 +529,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 15,
+    width: '100%',
   },
   // Offers
   offersContainer: {
