@@ -263,6 +263,7 @@ export const SearchScreen: React.FC = () => {
             returnKeyType="search"
             onSubmitEditing={handleSearchSubmit}
           />
+
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => {
@@ -431,9 +432,7 @@ export const SearchScreen: React.FC = () => {
                     name="star"
                     size={16}
                     color={
-                      filter.minRating === rating
-                        ? "#FFA500"
-                        : colors.grey_text
+                      filter.minRating === rating ? "#FFA500" : colors.grey_text
                     }
                   />
                   <TextComponent
@@ -441,9 +440,7 @@ export const SearchScreen: React.FC = () => {
                     size={12}
                     fontWeight={filter.minRating === rating ? "600" : "400"}
                     color={
-                      filter.minRating === rating
-                        ? "#0A2C4D"
-                        : colors.grey_text
+                      filter.minRating === rating ? "#0A2C4D" : colors.grey_text
                     }
                     styles={{ marginLeft: 3 }}
                   />
@@ -569,6 +566,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 5,
+    marginLeft: 5,
   },
   filterBar: {
     flexDirection: "row",
@@ -623,7 +621,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     // *** THAY ĐỔI 3: Xóa 'marginLeft' ***
-    // marginLeft: 5, 
+    // marginLeft: 5,
     borderRadius: 12,
     backgroundColor: colors.white,
     borderWidth: 1,

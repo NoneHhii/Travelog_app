@@ -1,252 +1,408 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
-    SafeAreaView,
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    TextInput,
-    ActivityIndicator,
-    Dimensions,
-    Modal,
-    Pressable,
-} from 'react-native';
-import { colors } from '../constants/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { YOUTUBE_API_KEY } from '@env';
-import YoutubePlayer from "react-native-youtube-iframe";
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Dimensions,
+  TouchableOpacity,
+  StatusBar,
+  Alert,
+  Pressable,
+  Share,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Video, ResizeMode, VideoReadyForDisplayEvent, AVPlaybackStatus } from "expo-av";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { db } from "../firebase/firebase";
 
-const lightBackground = "#F4F7FF";
-const themeColor = "#0194F3";
-const cardBackgroundColor = colors.white;
-const primaryTextColor = "#0A2C4D";
-const secondaryTextColor = colors.grey_text;
-const searchBarBackgroundColor = colors.white;
+// --- CẤU HÌNH KÍCH THƯỚC ---
+const { width: WINDOW_WIDTH, height: WINDOW_HEIGHT } = Dimensions.get("window");
+const BOTTOM_TAB_HEIGHT = 50;
+const VIDEO_HEIGHT = WINDOW_HEIGHT - BOTTOM_TAB_HEIGHT;
 
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const videoCardWidth = (SCREEN_WIDTH - 15 * 3) / 2;
-
-interface YoutubeVideo {
-    id: string;
-    title: string;
-    thumbnailUrl: string;
-    channelTitle: string;
+interface ExploreItem {
+  id: string;
+  tourID: string | null;
+  videoLink: string;
+  title: string;
+  description: string;
+  likes: number;
+  status: boolean;
 }
 
-const ExploreHeader: React.FC = () => (
-    <View style={styles.headerContainer}>
-        <View style={styles.headerButtonPlaceholder} />
-        <Text style={styles.headerTitle}>Khám phá</Text>
-        <View style={styles.headerButtonPlaceholder} />
-    </View>
-);
-
-interface SearchBarProps {
-    value: string;
-    onChangeText: (text: string) => void;
-    onSubmit: () => void;
-}
-const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText, onSubmit }) => (
-     <View style={styles.searchBarWrapper}>
-        <View style={styles.searchBarContainer}>
-            <Ionicons
-                name="search"
-                size={20}
-                color={secondaryTextColor}
-                style={styles.searchIcon}
-            />
-            <TextInput
-                placeholder="Tìm video du lịch..."
-                placeholderTextColor={secondaryTextColor}
-                style={styles.searchInput}
-                value={value}
-                onChangeText={onChangeText}
-                onSubmitEditing={onSubmit}
-                returnKeyType="search"
-            />
-        </View>
-    </View>
-);
-
-interface VideoCardProps {
-    video: YoutubeVideo;
-    onPress: (videoId: string) => void;
-}
-const VideoCard: React.FC<VideoCardProps> = ({ video, onPress }) => (
-    <TouchableOpacity style={styles.videoCardContainer} onPress={() => onPress(video.id)} activeOpacity={0.8}>
-        <Image source={{ uri: video.thumbnailUrl }} style={styles.videoThumbnail} />
-        <View style={styles.videoInfoContainer}>
-             <Text style={styles.videoTitle} numberOfLines={2}>{video.title}</Text>
-             <Text style={styles.videoChannel} numberOfLines={1}>{video.channelTitle}</Text>
-        </View>
-    </TouchableOpacity>
-);
-
-export const ExploreScreen: React.FC = () => {
-    const [videos, setVideos] = useState<YoutubeVideo[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-    const [isPlayerReady, setIsPlayerReady] = useState(false);
-    const playerRef = useRef<any>(null);
-
-     const fetchYoutubeVideos = useCallback(async (baseQuery: string) => {
-        setIsLoading(true);
-        setError(null);
-        setVideos([]);
-
-        const queryTerm = baseQuery.trim() === "" ? " " : baseQuery.trim();
-        let finalQuery = `du lịch Việt Nam ${queryTerm}`;
-
-        console.log("Searching YouTube with query:", finalQuery);
-
-        const API_URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(finalQuery)}&type=video&regionCode=VN&maxResults=6&key=${YOUTUBE_API_KEY}`;
-
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-
-            if (data.items && data.items.length > 0) {
-                const formattedVideos: YoutubeVideo[] = data.items.map((item: any) => ({
-                    id: item.id.videoId,
-                    title: item.snippet.title,
-                    thumbnailUrl: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
-                    channelTitle: item.snippet.channelTitle,
-                }));
-                setVideos(formattedVideos);
-            } else if (data.items && data.items.length === 0) {
-                 setError("Không tìm thấy video nào.");
-                 setVideos([]);
-            } else {
-                 console.error("YouTube API Error:", data.error || "Unknown error");
-                 if (data.error?.errors?.[0]?.reason === 'quotaExceeded') {
-                     setError("Đã hết hạn ngạch YouTube API cho hôm nay.");
-                 } else {
-                     setError("Không tìm thấy video nào hoặc API Key lỗi.");
-                 }
-                 setVideos([]);
-            }
-        } catch (err) {
-            console.error("Fetch Error:", err);
-            setError("Lỗi kết nối mạng.");
-            setVideos([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-     useEffect(() => {
-        if(!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY' ) {
-            setError("Vui lòng thêm YouTube API Key vào file .env");
-            setIsLoading(false);
-            return;
-        }
-        fetchYoutubeVideos(searchTerm);
-    }, [fetchYoutubeVideos, searchTerm]);
-
-    const handleSearchSubmit = () => {
-        fetchYoutubeVideos(searchTerm);
-    };
-
-    const playVideo = useCallback((videoId: string) => { setPlayingVideoId(videoId); setIsPlayerReady(false); }, []);
-    const closePlayer = useCallback(() => { setPlayingVideoId(null); }, []);
-    const onPlayerStateChange = useCallback((state: string) => { if (state === "ended") console.log("Video ended"); if (state === "playing") console.log("Video playing"); }, []);
-    const onPlayerReady = useCallback(() => { console.log("Player is ready"); setIsPlayerReady(true); }, []);
-    const onPlayerError = useCallback((error: any) => { console.error("Player Error:", error); setError("Không thể phát video này."); closePlayer(); }, [closePlayer]);
-
-    const renderVideoItem = ({ item }: { item: YoutubeVideo }) => (
-        <VideoCard video={item} onPress={playVideo} />
-    );
-
-    return (
-        <SafeAreaView style={styles.screenContainer}>
-            <ExploreHeader />
-             <SearchBar
-                value={searchTerm}
-                onChangeText={setSearchTerm}
-                onSubmit={handleSearchSubmit}
-            />
-
-             <Modal
-                visible={!!playingVideoId}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={closePlayer}
-            >
-                 <View style={styles.modalContainer}>
-                     <Pressable style={styles.modalBackdrop} onPress={closePlayer} />
-                     <View style={styles.playerWrapper}>
-                         {playingVideoId && (
-                             <YoutubePlayer
-                                 ref={playerRef}
-                                 height={SCREEN_WIDTH * 9 / 16}
-                                 videoId={playingVideoId}
-                                 play={isPlayerReady}
-                                 onChangeState={onPlayerStateChange}
-                                 onReady={onPlayerReady}
-                                 onError={onPlayerError}
-                                 webViewStyle={{opacity: 0.99}}
-                             />
-                         )}
-                          <TouchableOpacity style={styles.closeButton} onPress={closePlayer}>
-                              <Ionicons name="close-circle" size={30} color={colors.white} />
-                          </TouchableOpacity>
-                     </View>
-                </View>
-            </Modal>
-
-            <FlatList
-                data={videos}
-                renderItem={renderVideoItem}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                columnWrapperStyle={styles.videoGridRow}
-                contentContainerStyle={styles.videoGridContent}
-                ListHeaderComponent={
-                    <>
-                         {isLoading && (
-                            <ActivityIndicator size="large" color={themeColor} style={styles.loadingIndicator} />
-                         )}
-                         {error && !isLoading && (
-                             <Text style={styles.errorText}>{error}</Text>
-                         )}
-                    </>
-                }
-                 ListEmptyComponent={
-                     !isLoading && !error && videos.length === 0 ? (
-                         <Text style={styles.emptyListText}>Không có video nào phù hợp.</Text>
-                     ) : null
-                 }
-            />
-        </SafeAreaView>
-    );
+// --- HÀM TIỆN ÍCH ---
+const getOptimizedVideoUrl = (originalUrl: string) => {
+  if (!originalUrl) return "";
+  if (originalUrl.includes("cloudinary.com")) {
+    const uploadIndex = originalUrl.indexOf("/upload/");
+    if (uploadIndex !== -1 && !originalUrl.includes("f_mp4")) {
+      const part1 = originalUrl.slice(0, uploadIndex + 8);
+      const part2 = originalUrl.slice(uploadIndex + 8);
+      return part1 + "f_mp4,w_720,q_auto/" + part2;
+    }
+  }
+  return originalUrl;
 };
 
+const getThumbnailUrl = (videoUrl: string) => {
+  if (!videoUrl) return "https://via.placeholder.com/400x800.png?text=No+Video";
+  if (videoUrl.includes("cloudinary.com")) {
+    if (videoUrl.includes("f_mp4")) {
+      return videoUrl.replace("f_mp4", "f_jpg,so_1");
+    }
+    const uploadIndex = videoUrl.indexOf("/upload/");
+    if (uploadIndex !== -1) {
+      const part1 = videoUrl.slice(0, uploadIndex + 8);
+      const part2 = videoUrl.slice(uploadIndex + 8);
+      return part1 + "f_jpg,so_1,q_auto/" + part2;
+    }
+  }
+  return videoUrl;
+};
+
+const formatTime = (millis: number | null | undefined) => {
+  if (millis === null || millis === undefined || isNaN(millis)) return "00:00";
+  const totalSeconds = Math.floor(millis / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+};
+
+// --- COMPONENT CON: RENDER VIDEO ITEM ---
+const RenderVideoItem = memo(
+  ({ item, index, isActive }: { item: ExploreItem; index: number; isActive: boolean }) => {
+    const navigation = useNavigation<any>();
+    const isFocused = useIsFocused();
+    const videoRef = useRef<Video>(null);
+
+    // State
+    const [currentPosition, setCurrentPosition] = useState(0);
+    const [videoDuration, setVideoDuration] = useState(0);
+    const [isPausedByUser, setIsPausedByUser] = useState(false);
+    const [videoResizeMode, setVideoResizeMode] = useState<ResizeMode>(ResizeMode.COVER);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(item.likes);
+    const [shouldMountVideo, setShouldMountVideo] = useState(false);
+
+    // Effect
+    useEffect(() => {
+      let timer: NodeJS.Timeout;
+      if (isActive) {
+        timer = setTimeout(() => {
+          setShouldMountVideo(true);
+        }, 250);
+      } else {
+        setShouldMountVideo(false);
+        setCurrentPosition(0);
+        setIsPausedByUser(false);
+        setIsExpanded(false); // Reset trạng thái mở rộng khi lướt qua video khác
+      }
+      return () => { if (timer) clearTimeout(timer); };
+    }, [isActive]);
+
+    // Handlers
+    const handleToggleLike = async () => {
+      const exploreRef = doc(db, "explores", item.id);
+      if (isLiked) {
+        setIsLiked(false);
+        setLikeCount((prev) => prev - 1);
+        try { await updateDoc(exploreRef, { likes: increment(-1) }); } catch (e) { }
+      } else {
+        setIsLiked(true);
+        setLikeCount((prev) => prev + 1);
+        try { await updateDoc(exploreRef, { likes: increment(1) }); } catch (e) { }
+      }
+    };
+
+    const handleShare = async () => {
+      try {
+        await Share.share({
+          message: `${item.title}\nXem ngay tại Travelog: https://travelog.app/explore/${item.id}`,
+          url: `https://travelog.app/explore/${item.id}`,
+          title: "Travelog Explore",
+        });
+      } catch (error: any) { Alert.alert(error.message); }
+    };
+
+    const handleGoToTourDetail = () => {
+      if (item.tourID) {
+        setIsPausedByUser(true);
+        navigation.navigate("TravelDetail", { id: item.tourID });
+      }
+    };
+
+    const togglePlayPause = () => setIsPausedByUser(!isPausedByUser);
+
+    const onLoad = (status: AVPlaybackStatus) => {
+      if (status.isLoaded && status.durationMillis) setVideoDuration(status.durationMillis);
+    };
+
+    const onReadyForDisplay = (event: VideoReadyForDisplayEvent) => {
+      const { width, height } = event.naturalSize;
+      setVideoResizeMode(width > height ? ResizeMode.CONTAIN : ResizeMode.COVER);
+    };
+
+    const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+      if (status.isLoaded) {
+        setCurrentPosition(status.positionMillis);
+        if (status.durationMillis && videoDuration === 0) setVideoDuration(status.durationMillis);
+      }
+    };
+
+    const handleSeek = async (event: any) => {
+      if (videoDuration > 0) {
+        const { locationX } = event.nativeEvent;
+        const percentage = Math.max(0, Math.min(1, locationX / WINDOW_WIDTH));
+        const seekTime = percentage * videoDuration;
+        setCurrentPosition(seekTime);
+        await videoRef.current?.setPositionAsync(seekTime, { toleranceMillisBefore: 100, toleranceMillisAfter: 100 });
+      }
+    };
+
+    const optimizedSource = getOptimizedVideoUrl(item.videoLink);
+    const thumbnailUrl = getThumbnailUrl(item.videoLink);
+    const progressPercent = videoDuration > 0 ? (currentPosition / videoDuration) * 100 : 0;
+
+    return (
+      <View style={styles.videoContainer}>
+        <Pressable onPress={togglePlayPause} style={styles.videoInnerContainer}>
+          <Image
+            source={{ uri: thumbnailUrl }}
+            style={[styles.video, { zIndex: 0 }]}
+            resizeMode="cover"
+          />
+          {shouldMountVideo ? (
+            <Video
+              ref={videoRef}
+              style={[styles.video, { zIndex: 1 }]}
+              source={{ uri: optimizedSource }}
+              useNativeControls={false}
+              resizeMode={videoResizeMode}
+              isLooping
+              shouldPlay={!isPausedByUser && isFocused}
+              onLoad={onLoad}
+              onReadyForDisplay={onReadyForDisplay}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              progressUpdateIntervalMillis={250}
+              posterSource={{ uri: thumbnailUrl }}
+              usePoster={false}
+            />
+          ) : (
+            <View style={styles.loadingPlaceholder}>
+              <Ionicons name="play-circle-outline" size={50} color="rgba(255,255,255,0.3)" />
+            </View>
+          )}
+
+          {shouldMountVideo && (isPausedByUser || !isFocused) && (
+            <View style={styles.playIconContainer}>
+              <Ionicons name="play" size={60} color="rgba(255,255,255,0.6)" />
+            </View>
+          )}
+        </Pressable>
+
+        {/* --- UI OVERLAY --- */}
+        <View style={styles.overlayUI}>
+          <View style={styles.rightActionContainer}>
+            <TouchableOpacity style={styles.actionItem} onPress={handleToggleLike}>
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={35} color={isLiked ? "red" : "white"} />
+              <Text style={styles.actionText}>{likeCount}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionItem} onPress={handleShare}>
+              <Ionicons name="share-social" size={32} color="white" />
+              <Text style={styles.actionText}>Chia sẻ</Text>
+            </TouchableOpacity>
+            {item.tourID && (
+              <TouchableOpacity style={styles.bookTourButton} onPress={handleGoToTourDetail}>
+                <View style={styles.bookTourIconInner}>
+                  <Ionicons name="airplane" size={20} color="#fff" />
+                </View>
+                <View style={styles.plusBadge}><Ionicons name="add" size={10} color="white" /></View>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.bottomInfoContainer}>
+            <Text style={styles.userName}>@travelog_explore</Text>
+            <Text style={styles.videoTitle}>{item.title}</Text>
+            
+            {/* --- THAY ĐỔI Ở ĐÂY: Bấm vào text để mở rộng --- */}
+            <TouchableOpacity 
+              activeOpacity={1} // Giữ nguyên độ đậm nhạt khi bấm vào text
+              onPress={() => {
+                if (item.description.length > 80) {
+                  setIsExpanded(!isExpanded);
+                }
+              }}
+            >
+              <Text style={styles.videoDesc} numberOfLines={isExpanded ? undefined : 2}>
+                {item.description}
+                {/* Nếu dài hơn 80 kí tự và đang đóng, hiển thị thêm chữ ... Xem thêm đậm */}
+                {!isExpanded && item.description.length > 80 && (
+                   <Text style={{ fontWeight: 'bold' }}> ... Xem thêm</Text>
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* --- SEEK BAR --- */}
+        {shouldMountVideo && (
+          <View style={styles.seekBarContainer}>
+            <View style={styles.timerContainer}>
+              <Text style={styles.timerText}>
+                {formatTime(currentPosition)} / {formatTime(videoDuration)}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={1}
+              onPressIn={handleSeek}
+              style={styles.progressBarClickArea}
+              hitSlop={{ top: 20, bottom: 20, left: 0, right: 0 }}
+            >
+              <View pointerEvents="none" style={styles.progressBarBackgroundLine} />
+              <View pointerEvents="none" style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+              {videoDuration > 0 && (
+                <View pointerEvents="none" style={[styles.progressThumb, { left: `${progressPercent}%` }]} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  }
+);
+
+// --- MAIN SCREEN ---
+export const ExploreScreen: React.FC = ({ navigation }: any) => {
+  const [videos, setVideos] = useState<ExploreItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchExplores = async () => {
+      try {
+        const q = query(collection(db, "explores"), where("status", "==", true));
+        const querySnapshot = await getDocs(q);
+        const fetchedVideos: ExploreItem[] = [];
+        querySnapshot.forEach((doc) => {
+          fetchedVideos.push({ id: doc.id, ...doc.data() } as ExploreItem);
+        });
+        setVideos(fetchedVideos);
+      } catch (error) {
+        console.error("Lỗi tải video:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExplores();
+  }, []);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems && viewableItems.length > 0) {
+      setActiveVideoIndex(viewableItems[0].index ?? 0);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+
+  if (loading) return <ActivityIndicator size="large" color="white" style={styles.loadingContainer} />;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
+      <FlatList
+        data={videos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <RenderVideoItem
+            item={item}
+            index={index}
+            isActive={index === activeVideoIndex}
+          />
+        )}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={VIDEO_HEIGHT}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={(data, index) => ({ length: VIDEO_HEIGHT, offset: VIDEO_HEIGHT * index, index })}
+        initialNumToRender={1}
+        maxToRenderPerBatch={1}
+        windowSize={3}
+        removeClippedSubviews={true}
+        updateCellsBatchingPeriod={100}
+      />
+    </SafeAreaView>
+  );
+};
+
+// --- STYLES ---
 const styles = StyleSheet.create({
-    screenContainer: { flex: 1, backgroundColor: lightBackground },
-    headerContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', backgroundColor: colors.white, paddingHorizontal: 15, paddingTop: 50, paddingBottom: 15, borderBottomColor: colors.light_Blue, borderBottomWidth: 1 },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: primaryTextColor },
-    headerButtonPlaceholder: { width: 40 },
-    searchBarWrapper: { paddingHorizontal: 15, paddingTop: 15, paddingBottom: 15, backgroundColor: colors.white, borderBottomColor: colors.light_Blue, borderBottomWidth: 1 },
-    searchBarContainer: { flexDirection: "row", alignItems: "center", backgroundColor: lightBackground, borderRadius: 10, paddingHorizontal: 12, height: 45 },
-    searchIcon: { marginRight: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: primaryTextColor },
-    videoGridContent: { paddingHorizontal: 7.5, paddingBottom: 20, paddingTop: 15 },
-    videoGridRow: { justifyContent: 'space-between', marginBottom: 15, paddingHorizontal: 7.5 },
-    videoCardContainer: { width: videoCardWidth, backgroundColor: cardBackgroundColor, borderRadius: 10, overflow: 'hidden', elevation: 2, shadowColor: "#AAB2C8", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
-    videoThumbnail: { width: '100%', height: videoCardWidth * 0.75, backgroundColor: '#eee' },
-    videoInfoContainer: { padding: 10 },
-    videoTitle: { fontSize: 14, fontWeight: '600', color: primaryTextColor, marginBottom: 3 },
-    videoChannel: { fontSize: 12, color: secondaryTextColor },
-    loadingIndicator: { marginTop: 50, alignSelf: 'center' },
-    errorText: { color: colors.red, fontSize: 14, textAlign: 'center', marginTop: 20, paddingHorizontal: 20 },
-    emptyListText: { color: secondaryTextColor, fontSize: 14, textAlign: 'center', marginTop: 50 },
-    modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.7)' },
-    modalBackdrop: { ...StyleSheet.absoluteFillObject },
-    playerWrapper: { width: '95%', backgroundColor: '#000', borderRadius: 5, overflow: 'hidden', position: 'relative' },
-    closeButton: { position: 'absolute', top: -10, right: -10, borderRadius: 15, padding: 2, zIndex: 10 },
+  container: { flex: 1, backgroundColor: "black" },
+  loadingContainer: { flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" },
+  videoContainer: { width: WINDOW_WIDTH, height: VIDEO_HEIGHT, backgroundColor: "black", position: "relative" },
+  videoInnerContainer: { width: "100%", height: "100%", justifyContent: "center", alignItems: "center" },
+  video: { width: "100%", height: "100%", position: "absolute" },
+  loadingPlaceholder: { position: 'absolute', zIndex: 2, alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' },
+  playIconContainer: { position: "absolute", alignSelf: "center", top: "45%", zIndex: 3 },
+
+  // Overlay UI
+  overlayUI: {
+    position: "absolute",
+    bottom: 45,
+    left: 0,
+    right: 0,
+    justifyContent: "flex-end",
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+    zIndex: 2
+  },
+  bottomInfoContainer: { width: "100%", justifyContent: "flex-end", paddingRight: 80, marginBottom: 10 },
+  userName: { color: "white", fontWeight: "bold", fontSize: 16, marginBottom: 8, textShadowColor: "rgba(0, 0, 0, 0.75)", textShadowOffset: { width: -1, height: 1 }, textShadowRadius: 10 },
+  videoTitle: { color: "white", fontSize: 15, fontWeight: "600", marginBottom: 8, lineHeight: 22, textShadowColor: "rgba(0, 0, 0, 0.75)", textShadowOffset: { width: -1, height: 1 }, textShadowRadius: 10 },
+  
+  // Style text mô tả
+  videoDesc: { 
+    color: "#e0e0e0", 
+    fontSize: 14, 
+    lineHeight: 20, 
+    textShadowColor: "rgba(0, 0, 0, 0.75)", 
+    textShadowOffset: { width: -1, height: 1 }, 
+    textShadowRadius: 10, 
+    marginBottom: 5 
+  },
+  
+  // Loại bỏ style seeMoreText cũ vì giờ dùng inline
+  rightActionContainer: { position: "absolute", right: 10, bottom: 40, alignItems: "center", zIndex: 2 },
+  actionItem: { alignItems: "center", marginBottom: 20 },
+  actionText: { color: "white", marginTop: 5, fontSize: 12, fontWeight: "600", textShadowColor: "rgba(0, 0, 0, 0.75)", textShadowOffset: { width: -1, height: 1 }, textShadowRadius: 10 },
+  bookTourButton: { marginTop: 10, alignItems: "center", justifyContent: "center" },
+  bookTourIconInner: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#222", borderWidth: 2, borderColor: "white", justifyContent: "center", alignItems: "center" },
+  plusBadge: { position: "absolute", bottom: -8, backgroundColor: "#FF4500", width: 20, height: 20, borderRadius: 10, justifyContent: "center", alignItems: "center" },
+
+  // Seek Bar
+  seekBarContainer: { position: 'absolute', bottom: 35, left: 0, width: '100%', height: 40, justifyContent: 'flex-end', zIndex: 999, paddingBottom: 10 },
+  timerContainer: { position: 'absolute', right: 15, bottom: 25, backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  timerText: { color: 'white', fontSize: 12, fontWeight: '600', textShadowColor: 'rgba(0, 0, 0, 0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  progressBarClickArea: { width: '100%', height: 30, justifyContent: 'center', backgroundColor: 'transparent' },
+  progressBarBackgroundLine: { position: 'absolute', left: 0, right: 0, height: 3, backgroundColor: 'rgba(255,255,255,0.4)', zIndex: 1 },
+  progressBarFill: { height: 3, backgroundColor: '#FF4500', position: 'absolute', left: 0, zIndex: 2 },
+  progressThumb: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#FF4500', position: 'absolute', marginLeft: -7, zIndex: 3, transform: [{ scale: 1.2 }] }
 });

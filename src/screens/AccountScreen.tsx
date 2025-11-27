@@ -107,7 +107,7 @@ export const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPr
     <TouchableOpacity style={[styles.optionRow, isLast && styles.optionRowLast]} onPress={onPress} activeOpacity={0.7}>
         <Ionicons name={icon} size={24} color={themeColor} style={styles.optionIcon} />
         <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>{title}</Text> 
+            <Text style={styles.optionTitle}>{title}</Text>
             <Text style={styles.optionContent}>{content}</Text>
         </View>
         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
@@ -116,9 +116,9 @@ export const OptionRow: React.FC<OptionRowProps> = ({ icon, title, content, onPr
 
 type Stack = NativeStackScreenProps<RootStackParamList, 'AccountScreen'>
 
-export const AccountScreen: React.FC<Stack> = ({navigation}) => {
+export const AccountScreen: React.FC<Stack> = ({ navigation }) => {
 
-    const {user, loading} = useAuth();
+    const { user, loading } = useAuth();
 
     const handleCard = () => {
         const prop : AssignProp = {
@@ -142,7 +142,6 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
     }
 
     const handleService = (id: number) => {
-
         if(id === 2) {
             navigation.navigate('ContactUs');
         } else if(id === 3) {
@@ -220,7 +219,7 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                 </View>
 
                 <View style={styles.card}>
-                     <Text style={styles.sectionTitle}>Phần thưởng của tôi</Text>
+                    <Text style={styles.sectionTitle}>Phần thưởng của tôi</Text>
                     {rewardsOptions.map((item, index) => (
                         <OptionRow
                             key={item.id}
@@ -234,17 +233,17 @@ export const AccountScreen: React.FC<Stack> = ({navigation}) => {
                 </View>
 
                 <View style={styles.card}>
-                     <Text style={styles.sectionTitle}>Dịch vụ</Text>
-                     {serviceOptions.map((item, index) => (
-                         <OptionRow
-                             key={item.id}
-                             icon={item.icon}
-                             title={item.title}
-                             content={item.content}
-                             isLast={index === serviceOptions.length - 1}
-                             onPress={() => handleService(item.id)}
-                         />
-                     ))}
+                    <Text style={styles.sectionTitle}>Dịch vụ</Text>
+                    {serviceOptions.map((item, index) => (
+                        <OptionRow
+                            key={item.id}
+                            icon={item.icon}
+                            title={item.title}
+                            content={item.content}
+                            isLast={index === serviceOptions.length - 1}
+                            onPress={() => handleService(item.id)}
+                        />
+                    ))}
                 </View>
 
             </ScrollView>
@@ -273,7 +272,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: colors.white,
         paddingHorizontal: 15,
-        paddingTop: 50,
+        paddingTop: 10,
         paddingBottom: 15,
         borderBottomColor: colors.light_Blue,
         borderBottomWidth: 1,
