@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
     maxWidth: 80, // Giới hạn chiều rộng
   },
   circle: {
-    width: 60, // Kích thước vòng tròn lớn hơn
-    height: 60,
+    width: 50, // Kích thước vòng tròn lớn hơn
+    height: 50,
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   text: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "500",
     color: "#333",
     textAlign: "center",

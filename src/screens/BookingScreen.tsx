@@ -9,6 +9,7 @@ import {
     Text,
     ActivityIndicator,
     FlatList,
+    RefreshControl,
 } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -16,10 +17,12 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import travel, { RootStackParamList } from "./HomeScreen";
-import { getAllTravel } from "../api/apiClient";
-import { TravelItem } from "../components/TravelItem";
+import { getAllTravel, getBookingsByEmail } from "../api/apiClient"; // Đã thêm getBookingsByEmail
 import { Slider } from "../components/Slider";
+import { useAuth } from "../hooks/useAuth"; // Import useAuth
+import moment from "moment"; // Dùng để format ngày
 
+// --- Constants ---
 const lightBackground = "#F4F7FF";
 const themeColor = "#0194F3";
 const cardBackgroundColor = colors.white;
@@ -36,6 +39,8 @@ const couponIconColor = '#4AB4FF';
 
 type BookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+// --- Components ---
+
 const BookingHeader: React.FC = () => (
     <View style={styles.headerContainer}>
         <View style={styles.headerButtonPlaceholder} />
@@ -44,65 +49,117 @@ const BookingHeader: React.FC = () => (
     </View>
 );
 
-const useSuggestedTravels = () => {
+// Component hiển thị 1 Item Booking
+const BookingItem: React.FC<{ booking: any, tour: travel | undefined, onPress: () => void }> = ({ booking, tour, onPress }) => {
+    // Nếu không tìm thấy thông tin tour tương ứng, hiển thị dữ liệu thô hoặc placeholder
+    const title = tour?.title || "Thông tin tour đang cập nhật";
+    const imageSource = tour?.images?.[0] ? { uri: tour.images[0] } : require("../../assets/travelImg.jpg");
+    const date = moment(booking.travelDate).format("DD/MM/YYYY");
+    const price = booking.totalPrice?.toLocaleString("vi-VN") || 0;
+
+    return (
+        <TouchableOpacity style={styles.bookingItemCard} onPress={onPress}>
+            <Image source={imageSource} style={styles.bookingImage} />
+            <View style={styles.bookingInfo}>
+                <Text style={styles.bookingTitle} numberOfLines={2}>{title}</Text>
+                
+                <View style={styles.bookingRow}>
+                    <Ionicons name="calendar-outline" size={14} color={secondaryTextColor} />
+                    <Text style={styles.bookingDate}>Khởi hành: {date}</Text>
+                </View>
+
+                <View style={styles.bookingRow}>
+                    <Ionicons name="people-outline" size={14} color={secondaryTextColor} />
+                    <Text style={styles.bookingDate}>{booking.numberOfGuests || booking.guestDetails?.length || 1} khách</Text>
+                </View>
+
+                <View style={styles.bookingFooter}>
+                    <View style={[styles.statusBadge, { backgroundColor: booking.status === 'confirmed' ? '#E5F8F0' : '#FFF0F0' }]}>
+                        <Text style={[styles.statusText, { color: booking.status === 'confirmed' ? '#00B060' : '#FF3D00' }]}>
+                            {booking.status === 'confirmed' ? 'Đã xác nhận' : booking.status}
+                        </Text>
+                    </View>
+                    <Text style={styles.bookingPrice}>{price}₫</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+// Hook xử lý logic lấy dữ liệu
+const useBookingData = () => {
+    const { user } = useAuth();
+    const [myBookings, setMyBookings] = useState<any[]>([]);
     const [suggestedTravels, setSuggestedTravels] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const fetchData = useCallback(async () => {
+        try {
+            // 1. Lấy danh sách tất cả tour (để mapping thông tin hình ảnh/tiêu đề)
+            // & Lấy danh sách booking của user
+            const [allTours, userBookings] = await Promise.all([
+                getAllTravel(),
+                user?.email ? getBookingsByEmail(user.email) : Promise.resolve([])
+            ]);
+
+            setSuggestedTravels(allTours);
+            setMyBookings(userBookings);
+
+        } catch (err) {
+            console.error("Error fetching data:", err);
+        } finally {
+            setIsLoading(false);
+            setRefreshing(false);
+        }
+    }, [user]);
 
     useEffect(() => {
-        (async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await getAllTravel();
-                setSuggestedTravels(data);
-            } catch (err) {
-                console.error("Error fetching suggested travels:", err);
-                setError(err as Error);
-            } finally {
-                setIsLoading(false);
-            }
-        })();
-    }, []);
+        setIsLoading(true);
+        fetchData();
+    }, [fetchData]);
 
-    return { suggestedTravels, isLoading, error };
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchData();
+    };
+
+    return { myBookings, suggestedTravels, isLoading, refreshing, onRefresh };
 };
 
 
+// --- Main Component ---
 export const BookingScreen: React.FC = () => {
     const tabs = ["Vé máy bay", "Khách sạn", "Vui chơi", "Ngân hàng"];
     const [selectedTab, setSelectedTab] = useState("Vé máy bay");
-
     const navigation = useNavigation<BookingScreenNavigationProp>();
-    const { suggestedTravels, isLoading, error } = useSuggestedTravels();
+    
+    // Sử dụng hook custom
+    const { myBookings, suggestedTravels, isLoading, refreshing, onRefresh } = useBookingData();
 
-    interface TabButtonProps {
-        text: string;
-        isActive: boolean;
-        onPress: () => void;
-    }
-    const TabButton: React.FC<TabButtonProps> = ({ text, isActive, onPress }) => (
-        <TouchableOpacity
-            style={[
-                styles.tabButtonBase,
-                isActive ? styles.tabButtonActive : styles.tabButtonInactive
-            ]}
-            onPress={onPress}
-        >
-            <Text style={[
-                styles.tabButtonTextBase,
-                isActive ? styles.tabButtonTextActive : styles.tabButtonTextInactive
-            ]}>
-                {text}
-            </Text>
-        </TouchableOpacity>
-    );
-
-     const handleDetail = useCallback(
+    const handleDetail = useCallback(
         (item: travel) => {
             navigation.navigate("TravelDetail", { travel: item });
         },
         [navigation]
+    );
+
+    // Hàm render tab
+    const renderTabButton = ({ item }: { item: string }) => (
+        <TouchableOpacity
+            style={[
+                styles.tabButtonBase,
+                item === selectedTab ? styles.tabButtonActive : styles.tabButtonInactive
+            ]}
+            onPress={() => setSelectedTab(item)}
+        >
+            <Text style={[
+                styles.tabButtonTextBase,
+                item === selectedTab ? styles.tabButtonTextActive : styles.tabButtonTextInactive
+            ]}>
+                {item}
+            </Text>
+        </TouchableOpacity>
     );
 
     return (
@@ -111,20 +168,48 @@ export const BookingScreen: React.FC = () => {
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[themeColor]} />
+                }
             >
-                <View style={styles.card}>
-                    <Image
-                        source={require("../../assets/KhongYeuCauDatCho.png")}
-                        style={styles.emptyStateImage}
-                    />
-                    <Text style={styles.emptyStateTitle}>
-                        Bạn hiện không có yêu cầu đặt chỗ nào
-                    </Text>
-                    <Text style={styles.emptyStateSubtitle}>
-                        Khám phá cuộc phiêu lưu mới với những ý tưởng truyền cảm hứng của chúng tôi dưới đây! Nếu bạn không thể tìm thấy đặt chỗ trước đó của mình, hãy thử đăng nhập bằng email mà bạn đã sử dụng khi đặt chỗ.
-                    </Text>
-                </View>
+                
+                {/* PHẦN 1: DANH SÁCH BOOKING HOẶC TRẠNG THÁI TRỐNG */}
+                {isLoading && !refreshing ? (
+                    <ActivityIndicator size="large" color={themeColor} style={{ marginVertical: 20 }} />
+                ) : myBookings.length > 0 ? (
+                    <View style={styles.card}>
+                        <Text style={styles.sectionTitle}>Chuyến đi của bạn</Text>
+                        {myBookings.map((booking) => {
+                            // Tìm thông tin tour tương ứng với booking
+                            const tourInfo = suggestedTravels.find(t => t.id === booking.tourID);
+                            return (
+                                <BookingItem 
+                                    key={booking.id} 
+                                    booking={booking} 
+                                    tour={tourInfo}
+                                    onPress={() => tourInfo && handleDetail(tourInfo)}
+                                />
+                            );
+                        })}
+                    </View>
+                ) : (
+                    // UI MẶC ĐỊNH KHI KHÔNG CÓ BOOKING
+                    <View style={styles.card}>
+                        <Image
+                            source={require("../../assets/KhongYeuCauDatCho.png")}
+                            style={styles.emptyStateImage}
+                        />
+                        <Text style={styles.emptyStateTitle}>
+                            Bạn hiện không có yêu cầu đặt chỗ nào
+                        </Text>
+                        <Text style={styles.emptyStateSubtitle}>
+                            Khám phá cuộc phiêu lưu mới với những ý tưởng truyền cảm hứng của chúng tôi dưới đây!
+                        </Text>
+                    </View>
+                )}
 
+
+                {/* PHẦN 2: THƯ VIỆN COUPON */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <View style={[styles.iconPill, { backgroundColor: couponIconBackgroundColor }]}>
@@ -144,13 +229,7 @@ export const BookingScreen: React.FC = () => {
                     <FlatList
                         style={styles.tabsContainer}
                         data={tabs}
-                        renderItem={({ item }) => (
-                            <TabButton
-                                text={item}
-                                isActive={item === selectedTab}
-                                onPress={() => setSelectedTab(item)}
-                            />
-                        )}
+                        renderItem={renderTabButton}
                         keyExtractor={(item) => item}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
@@ -161,6 +240,7 @@ export const BookingScreen: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
+                {/* PHẦN 3: ĐỀ XUẤT */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <View style={[styles.iconPill, { backgroundColor: fireIconBackgroundColor }]}>
@@ -172,16 +252,9 @@ export const BookingScreen: React.FC = () => {
                                 Gợi ý hoàn hảo cho chuyến đi trọn vẹn
                             </Text>
                         </View>
-                        <TouchableOpacity style={styles.arrowIcon}>
-                            <Ionicons name="chevron-forward-outline" size={24} color={secondaryTextColor} />
-                        </TouchableOpacity>
                     </View>
 
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color={themeColor} style={{ marginTop: 10 }} />
-                    ) : error ? (
-                        <Text style={[styles.errorText, { marginTop: 10 }]}>Lỗi tải gợi ý.</Text>
-                    ) : suggestedTravels.length > 0 ? (
+                    {suggestedTravels.length > 0 ? (
                         <Slider
                             travels={suggestedTravels}
                             handleDetail={handleDetail}
@@ -193,28 +266,23 @@ export const BookingScreen: React.FC = () => {
                     )}
                 </View>
 
+                {/* PHẦN 4: HOẠT ĐỘNG */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>
                         Tất cả các hoạt động
                     </Text>
                     <TouchableOpacity style={styles.activityItem}>
-                        <Text style={styles.activityText}>
-                            Danh sách mua hàng của bạn
-                        </Text>
+                        <Text style={styles.activityText}>Danh sách mua hàng của bạn</Text>
                         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.activityItem}>
-                        <Text style={styles.activityText}>
-                            Khoản hoàn tiền của bạn
-                        </Text>
+                        <Text style={styles.activityText}>Khoản hoàn tiền của bạn</Text>
                         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={[styles.activityItem, { borderBottomWidth: 0 }]}>
-                        <Text style={styles.activityText}>
-                            Đánh giá trải nghiệm gần đây
-                        </Text>
+                        <Text style={styles.activityText}>Đánh giá trải nghiệm gần đây</Text>
                         <Ionicons name="chevron-forward-outline" size={20} color={secondaryTextColor} />
                     </TouchableOpacity>
                 </View>
@@ -268,6 +336,69 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: primaryTextColor,
+        marginBottom: 10,
+    },
+    // --- Styles cho Booking Item ---
+    bookingItemCard: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    bookingImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 8,
+        marginRight: 12,
+    },
+    bookingInfo: {
+        flex: 1,
+        justifyContent: 'space-between',
+    },
+    bookingTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: primaryTextColor,
+        marginBottom: 4,
+    },
+    bookingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    bookingDate: {
+        fontSize: 12,
+        color: secondaryTextColor,
+        marginLeft: 4,
+    },
+    bookingFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    statusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
+    bookingPrice: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#FF7A2F',
+    },
+    // --- End Booking Item Styles ---
     emptyStateImage: {
         width: 130,
         height: 130,

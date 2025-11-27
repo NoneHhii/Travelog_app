@@ -38,9 +38,9 @@ const getCheckpoints = (user: UserDB) => {
     for(let i = 0; i < 7; i ++) {
         date+=1;
 
-        dayIndex = i + 1;
+        dayIndex = i;
 
-        // if(isChecked) dayIndex = user.checkinStreak;
+        if(isChecked) dayIndex = i + 1 === user.checkinStreak ? user.checkinStreak : i + 1;
 
         checkpoints.push({
             id: i + 1, 
@@ -159,7 +159,7 @@ const MissionLayout:React.FC<MissProp> = ({handleNaviMission, user, refreshUser}
                     {/* Progress bar */}
                     <View style={styles.progressContain}>
                         <Progress.Bar
-                            progress={0.7}
+                            progress={user.search.count/10}
                             width={200}
                             height={2} 
                             color={colors.red}
@@ -297,7 +297,7 @@ export const RewardZone:React.FC<Stack> = ({navigation}) => {
                 <View style={[styles.row, styles.zone, {justifyContent: 'space-around'}]}>
                     <TouchableOpacity style={styles.row}>
                         <Image source={require('../../assets/dollar.png')} style={styles.img}/>
-                        <Text style={{marginLeft: 4}}><Text style={styles.txt}>{point}</Text> điểm</Text>
+                        <Text style={{marginLeft: 4}}><Text style={styles.txt}>{user.pointReward}</Text> điểm</Text>
                     </TouchableOpacity>
                     <View style={styles.divider}/>
                     <TouchableOpacity 

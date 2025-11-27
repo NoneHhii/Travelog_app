@@ -11,13 +11,15 @@ import {
   ScrollView,
 } from "react-native";
 import { colors } from "../constants/colors";
-import { Booking, Guest, InforProps } from "./BookingInfor";
+import { Booking, Coupon, Guest, InforProps } from "./BookingInfor";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import createAcronym from "../utils/acronym";
 import { ButtonComponent } from "../components/ButtonComponent";
-import { createBooking } from "../api/apiClient";
+import { checkPaymentStatus, createBooking, createPayOSLink } from "../api/apiClient";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/RootNavigator";
+import * as WebBrowser from 'expo-web-browser'; // Import WebBrowser
+import * as Linking from 'expo-linking'; // Import Linking
 
 export interface PaymentType {
   infor: InforProps;
@@ -27,6 +29,9 @@ export interface PaymentType {
       name: string;
       phone: string;
   };
+  // THÊM 2 TRƯỜNG NÀY
+  finalPrice?: number; // Giá sau khi giảm
+  coupon?: Coupon | null; // Mã giảm giá đã áp dụng
 }
 
 type StackProps = NativeStackScreenProps<RootStackParamList, "Payment">;
@@ -91,7 +96,7 @@ const PaymentSummaryCard: React.FC<{ payment: PaymentType }> = ({ payment }) => 
 
     <Text style={styles.totalLabel}>Tổng tiền cần thanh toán</Text>
     <Text style={styles.totalPriceText}>
-      {payment.infor.totalPrice.toLocaleString("vi-VN")} ₫
+      {payment.finalPrice?.toLocaleString("vi-VN")} ₫
     </Text>
   </View>
 );
@@ -129,18 +134,22 @@ const Payment: React.FC<StackProps> = ({ navigation, route }) => {
   const { payment } = route.params;
   const [loading, setLoading] = useState(false);
 
+  // Hàm lưu booking vào Firebase (chỉ chạy khi đã thanh toán thành công)
   const postBooking = async (transactionId: string) => {
     try {
+      // Lấy giá đã giảm hoặc giá gốc
+      const amountToPay = payment.finalPrice !== undefined ? payment.finalPrice : payment.infor.totalPrice;
+
       const booking: Booking = {
         bookingDate: new Date().toISOString(),
         guestDetails: payment.guests,
         numberOfGuests: payment.guests.length,
         paymentInfo: {
-          method: "Card",
+          method: "PayOS", // Đổi method thành PayOS
           transactionID: transactionId,
         },
         status: "confirmed",
-        totalPrice: payment.infor.totalPrice,
+        totalPrice: amountToPay,
         tourID: payment.infor.tourID,
         travelDate: payment.infor.travelDate,
         contactName: payment.contact.name,
@@ -161,33 +170,75 @@ const Payment: React.FC<StackProps> = ({ navigation, route }) => {
   const handlePayment = async () => {
     setLoading(true);
     const paymentEmail = payment.contact.email;
-    const paymentAmount = payment.infor.totalPrice;
+    const amountToPay = payment.finalPrice !== undefined ? payment.finalPrice : payment.infor.totalPrice;
 
-    console.log(`Tiến hành thanh toán ${paymentAmount.toLocaleString('vi-VN')} VND...`);
+    // 1. Kiểm tra nếu giá trị = 0 (Free) thì không cần PayOS
+    if (amountToPay <= 0) {
+        try {
+            await postBooking("FREE_ORDER");
+            Alert.alert("Thành công", "Đặt tour thành công!", [{ text: "OK", onPress: () => navigation.popToTop() }]);
+        } catch (e) {
+            Alert.alert("Lỗi", "Không thể tạo đơn hàng.");
+        } finally {
+            setLoading(false);
+        }
+        return;
+    }
 
     try {
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 1500));
-      const mockTransactionId = `TXN_${Date.now()}`;
-      console.log("Thanh toán thành công. Transaction ID:", mockTransactionId);
+      // 2. Tạo Deep Link để PayOS quay trở lại App (nếu chạy trên máy thật/build)
+      // Nếu chạy Expo Go, việc redirect tự động hơi phức tạp, ta dùng phương pháp check thủ công sau khi đóng browser.
+      const returnUrl = Linking.createURL("payment-success");
+      const cancelUrl = Linking.createURL("payment-cancel");
 
-      await postBooking(mockTransactionId);
+      // 3. Gọi API tạo link thanh toán
+      console.log("Đang tạo link PayOS...");
+      const paymentData = await createPayOSLink(10000, returnUrl, cancelUrl);
 
-      console.log(`Đang gửi mail xác nhận đến: ${paymentEmail}`);
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
-      console.log("Mail xác nhận đã gửi.");
+      if (!paymentData || !paymentData.checkoutUrl) {
+          throw new Error("Không thể tạo link thanh toán");
+      }
 
-      Alert.alert(
-        "Thành công!",
-        `Đã thanh toán thành công ${paymentAmount.toLocaleString( "vi-VN" )} VND.\nEmail xác nhận đã được gửi đến ${paymentEmail}.`,
-        [{ text: "OK", onPress: () => navigation.popToTop() }]
-      );
+      const { checkoutUrl, orderCode } = paymentData;
+
+      // 4. Mở trình duyệt để thanh toán
+      // openAuthSessionAsync hoạt động tốt hơn openBrowserAsync cho flow xác thực/thanh toán
+      await WebBrowser.openAuthSessionAsync(checkoutUrl, returnUrl);
+
+      // 5. Sau khi trình duyệt đóng (người dùng quay lại App), kiểm tra trạng thái
+      console.log("Trình duyệt đóng, đang kiểm tra trạng thái đơn hàng:", orderCode);
+      setLoading(true); // Hiện lại loading khi đang check
+      
+      const orderInfo = await checkPaymentStatus(orderCode);
+
+      if (orderInfo && orderInfo.status === "PAID") {
+          // THANH TOÁN THÀNH CÔNG
+          console.log("PayOS Status: PAID");
+          
+          await postBooking(String(orderCode)); // Lưu vào Firebase
+
+          // Gửi mail xác nhận (simulation)
+          console.log(`Đang gửi mail xác nhận đến: ${paymentEmail}`);
+          // await sendEmailAPI(...) 
+
+          Alert.alert(
+            "Thành công! 🎉",
+            `Đã thanh toán thành công ${amountToPay.toLocaleString("vi-VN")} ₫.\nEmail xác nhận đã được gửi.`,
+            [{ text: "OK", onPress: () => navigation.popToTop() }]
+          );
+
+      } else {
+          // THANH TOÁN THẤT BẠI HOẶC HỦY
+          console.log("PayOS Status:", orderInfo?.status);
+          Alert.alert(
+              "Chưa hoàn tất", 
+              "Giao dịch chưa được thanh toán hoặc đã bị hủy. Vui lòng thử lại."
+          );
+      }
 
     } catch (error) {
-      console.error("Lỗi trong quá trình thanh toán/tạo booking/gửi mail:", error);
-      Alert.alert(
-        "Thất bại",
-        "Có lỗi xảy ra. Vui lòng thử lại sau."
-      );
+      console.error("Lỗi thanh toán:", error);
+      Alert.alert("Thất bại", "Có lỗi xảy ra trong quá trình thanh toán.");
     } finally {
       setLoading(false);
     }

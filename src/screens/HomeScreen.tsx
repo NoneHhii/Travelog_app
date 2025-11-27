@@ -241,6 +241,7 @@ const MenuGrid: React.FC<MenuGProp> = ({navigate}) => (
         title="Hoạt động"
         url={require("../../assets/think-to-do.png")}
         bgColor="#FFF9E6"
+        onPress={() => navigate("MissionScreen")}
       />
       <MenuComponent
         title="Xe Bus"
@@ -259,7 +260,7 @@ const MenuGrid: React.FC<MenuGProp> = ({navigate}) => (
         bgColor="#EAF8FF"
         onPress={() => navigate("Tàu thuyền")}
       />
-      <View style={{ width: 70, marginHorizontal: 8 }} />
+      {/* <View style={{ width: 70, marginHorizontal: 8 }} /> */}
     </View>
   </View>
 );
@@ -420,7 +421,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }
 
   const navigate = (string) => {
-    navigation.navigate('FilteredTours', {transportType: string});
+    if(string === "MissionScreen") navigation.navigate(string);
+    else navigation.navigate('FilteredTours', {transportType: string});
   }
 
   return (
@@ -527,7 +529,7 @@ const styles = StyleSheet.create({
   },
   menuRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     marginBottom: 15,
     width: '100%',
   },
