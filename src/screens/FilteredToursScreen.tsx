@@ -5,12 +5,13 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 import { TextComponent } from '../components/TextComponent';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
-import { getAllTravel } from '../api/apiClient'; // Giả định có hàm này
-import travel from './HomeScreen'; // Giả định type travel
-import { TravelItemGrid } from '../components/TravelItemGrid'; // Giả định component hiển thị tour
-import { Slider } from '../components/Slider';
+import { getAllTravel } from '../api/apiClient'; 
+import travel from './HomeScreen'; 
 
-// Khai báo type props (RootStackParamList cần được import)
+// --- THAY ĐỔI 1: Import TravelItem thay vì Slider ---
+// import { Slider } from '../components/Slider'; // Bỏ dòng này
+import { TravelItem } from '../components/TravelItem'; // Thêm dòng này
+
 type FilteredToursProps = NativeStackScreenProps<RootStackParamList, 'FilteredTours'>;
 
 // Component hiển thị Flash Sale/Ads
@@ -18,7 +19,6 @@ const FlashSaleAd: React.FC = () => (
     <View style={adStyles.flashSaleContainer}>
         <TextComponent text="FLASH SALE HÔM NAY!" size={18} fontWeight="bold" color="#FF3D00" />
         <TextComponent text="Giảm thêm 10% khi thanh toán bằng ví điện tử." size={14} color="#FF3D00" />
-        {/* <Image source={require('../../assets/sale_ad.png')} style={adStyles.adImage} /> */}
         <TextComponent text="⏰ Kết thúc sau: 03:20:15" size={14} fontWeight="bold" color="#0A2C4D" styles={{marginTop: 8}} />
     </View>
 );
@@ -36,14 +36,14 @@ interface TravelSectionProps {
   onPressItem: (item: travel) => void;
   title: string,
 }
+
+// --- THAY ĐỔI 2: Dùng FlatList thay vì Slider ---
 const TravelSection: React.FC<TravelSectionProps> = ({
   travels,
   onPressItem,
   title,
 }) => (
-  <ImageBackground 
-    style={styles.travelSectionContainer}
-    >
+  <ImageBackground style={styles.travelSectionContainer}>
     <View style={styles.sectionHeader}>
       <TextComponent
         text={title}
@@ -51,13 +51,18 @@ const TravelSection: React.FC<TravelSectionProps> = ({
         fontWeight="bold"
         color="#0A2C4D"
       />
-      
     </View>
-    <Slider
-      travels={travels}
-      RadiusTop={16}
-      RadiusBottom={16}
-      handleDetail={onPressItem}
+    
+    {/* Sử dụng FlatList để cuộn ngang danh sách tour */}
+    <FlatList
+        data={travels}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+            <TravelItem travel={item} onPress={onPressItem} />
+        )}
+        contentContainerStyle={{ paddingLeft: 20, paddingRight: 10 }}
     />
   </ImageBackground>
 );
@@ -67,9 +72,11 @@ export const FilteredToursScreen: React.FC<FilteredToursProps> = ({ navigation, 
     const [travels, setTravels] = useState<travel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    
+    // Hình nền động theo loại phương tiện
     const bgurl = transportType === "Máy bay" ? require("../../assets/bg-sky.jpg") :
-                                               (transportType === "Tàu thuyền" ? require("../../assets/bg-beach.jpg") : 
-                                                require("../../assets/bg-bus.jpg"))
+                               (transportType === "Tàu thuyền" ? require("../../assets/bg-beach.jpg") : 
+                                require("../../assets/bg-bus.jpg"))
 
     // 1. Lấy và Lọc dữ liệu Tour
     useEffect(() => {
@@ -101,8 +108,6 @@ export const FilteredToursScreen: React.FC<FilteredToursProps> = ({ navigation, 
         return <View style={styles.center}><TextComponent text="Lỗi tải dữ liệu" color={colors.red} /></View>;
     }
 
-    
-    
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -116,16 +121,15 @@ export const FilteredToursScreen: React.FC<FilteredToursProps> = ({ navigation, 
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 
-                {/* 2. Phần Ads và Ưu đãi (Thêm nhiều cái Ads) */}
+                {/* 2. Phần Ads và Ưu đãi */}
                 <ImageBackground
                     source={require("../../assets/bg-flashsale.jpg")}
-                    style={{
-                        
-                    }}
+                    style={{ paddingBottom: 10 }}
+                    imageStyle={{ opacity: 0.2 }}
                 >
                     <FlashSaleAd />
                     <View style={{marginTop: 20, marginBottom: 15, paddingHorizontal: 15}}>
-                        <TextComponent text={`Gợi ý tour ${transportType} cho bạn`} size={18} fontWeight="bold" color={colors.white} />
+                        <TextComponent text={`Gợi ý tour ${transportType} cho bạn`} size={18} fontWeight="bold" color="#0A2C4D" />
                     </View>
                     
                     <BannerAd title="Đặt tour theo nhóm nhận ưu đãi lớn!" subtitle="Giảm ngay 20% khi đặt trên 5 người." bgColor={colors.blue_splash} />
@@ -140,6 +144,8 @@ export const FilteredToursScreen: React.FC<FilteredToursProps> = ({ navigation, 
                 ) : (
                     <ImageBackground
                         source={bgurl}
+                        imageStyle={{ opacity: 0.3 }} // Làm mờ background để dễ đọc chữ
+                        style={{ flex: 1 }}
                     >
                         <TravelSection travels={travels} onPressItem={handleDetail} title={`Tour Du Lịch bằng ${transportType}`}/>
                         <TravelSection travels={travels.filter(travel => travel.price <= 9500000)} onPressItem={handleDetail} title="Ưu đãi tốt nhất"/>
@@ -160,7 +166,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 15,
-        padding: 5,
+        paddingTop: 50, // Tăng padding top để tránh tai thỏ
+        paddingBottom: 15,
         backgroundColor: colors.blue_splash,
     },
     backButton: {
@@ -171,14 +178,14 @@ const styles = StyleSheet.create({
     },
     travelSectionContainer: {
         paddingTop: 25,
-        paddingBottom: 20, // Thêm padding dưới cùng
+        paddingBottom: 20,
     },
     sectionHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 20,
-        marginBottom: 5,
+        marginBottom: 10,
     },
     center: {
         flex: 1,
@@ -186,15 +193,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         minHeight: 200,
     },
-    columnWrapper: {
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    }
 });
 
 const adStyles = StyleSheet.create({
     flashSaleContainer: {
-        backgroundColor: '#FFEFEB', // Nền đỏ/hồng nhạt
+        backgroundColor: '#FFEFEB', 
         padding: 15,
         marginHorizontal: 15,
         borderRadius: 15,
@@ -202,12 +205,6 @@ const adStyles = StyleSheet.create({
         borderColor: '#FF3D00',
         alignItems: 'center',
         marginTop: 15,
-    },
-    adImage: {
-        width: '100%',
-        height: 100,
-        resizeMode: 'contain',
-        marginVertical: 10,
     },
     bannerContainer: {
         padding: 15,

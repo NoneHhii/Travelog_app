@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     height: 150,
     position: 'relative',
   },
-  image: {
+image: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
