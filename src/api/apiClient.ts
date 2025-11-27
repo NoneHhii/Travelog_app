@@ -208,7 +208,7 @@ export async function CheckInDaily(uid: string, point: number) {
     });
 }
 
-const API_URL = 'http://192.168.1.199:3000';
+const API_URL = 'https://betravelog.vercel.app/';
 
 //coupon
 export async function getCouponByIds(ids: string[]) {
