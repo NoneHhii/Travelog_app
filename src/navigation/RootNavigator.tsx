@@ -22,6 +22,9 @@ import { CardPayment } from "../screens/CardPayment";
 import { MyCoupon } from "../screens/MyCoupon";
 import { ContactUs } from "../screens/ContactUs";
 import { RewardZone } from "../screens/RewardZone";
+import { FilteredToursScreen } from "../screens/FilteredToursScreen";
+import { MissionScreen } from "../screens/MissionScreen";
+import { CouponSelectionScreen } from "../screens/CouponSelectionScreen";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -44,6 +47,9 @@ export type RootStackParamList = {
   MyCoupon: undefined,
   ContactUs: undefined,
   RewardZone: undefined,
+  FilteredTours: {transportType: "Máy bay" | "Xe khách" | "Tàu thuyền"},
+  MissionScreen: undefined,
+  CouponSelection: { rawPrice: number; selectedCouponId?: string },
 };
 
 const Stack = createStackNavigator();
@@ -214,6 +220,30 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="RewardZone"
           component={RewardZone}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="FilteredTours"
+          component={FilteredToursScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="MissionScreen"
+          component={MissionScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="CouponSelection"
+          component={CouponSelectionScreen}
           options={{
             headerShown: false,
           }}

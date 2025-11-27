@@ -152,10 +152,10 @@ export const SearchScreen: React.FC = () => {
   }, [travels, confirmQuery, sortBy, filter]);
 
   const trackSearchRewardEvent = async() => {
-    if(!user || confirmQuery.trim().length === 0) return;
-    console.log("Text:", confirmQuery);
+    if(!user || searchQuery.trim().length === 0) return;
+    // console.log("Text:", confirmQuery);
     try {
-      console.log("Ghi nhaanj");
+      // console.log("Ghi nhaanj");
       await searchReward(user.uid, 40);
       refreshUser();
 

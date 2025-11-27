@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, Firestore, getDoc, getDocs, runTransaction, serverTimestamp, setDoc, Transaction, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, Firestore, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, Transaction, updateDoc, where } from "firebase/firestore";
 import { app, db } from "../firebase/firebase";
 import { Booking } from "../screens/BookingInfor";
 import { UserDB } from "../screens/Register";
@@ -126,27 +126,26 @@ export async function searchReward(uid: string, point: number) {
         let currentCount = data.search.count | 0;
         let pointReward = data.pointReward | 0;
         const lastSearchTime = data.search?.lastUpdated;
-        if(lastSearchTime) {
-            const lastSearchMoment = moment(lastSearchTime.toDate());
+        let lastSearchMoment = null;
+        if(lastSearchTime) lastSearchMoment = moment(lastSearchTime.toDate());
 
-            const now = moment();
+        const now = moment();
 
-            const isSameDay = lastSearchMoment && lastSearchMoment.isSame(now, 'day');
+        const isSameDay = lastSearchMoment && lastSearchMoment.isSame(now, 'day');
 
-            if(!isSameDay) currentCount = 0;
-            else {
-                pointReward+=point;
-                currentCount+=1;
-            }
-
-            transaction.update(useRef, {
-                pointReward: pointReward,
-                search: {
-                    count: currentCount,
-                    lastUpdated: serverTimestamp(),
-                }
-            })
+        if(!isSameDay) currentCount = 1;
+        else {
+            pointReward+=point;
+            currentCount+=1;
         }
+
+        transaction.update(useRef, {
+            pointReward: pointReward,
+            search: {
+                count: currentCount,
+                lastUpdated: serverTimestamp(),
+            }
+        })
     })
 
     // const resetSearch = searchCount;
@@ -191,8 +190,7 @@ export async function CheckInDaily(uid: string, point: number) {
 
         let newStreak;
 
-        if(yesterdayChecked) newStreak = currentStreak + 1;
-        else newStreak = 1;
+        newStreak = currentStreak + 1;
 
         let reward = data.pointReward + point;
 
@@ -210,7 +208,7 @@ export async function CheckInDaily(uid: string, point: number) {
     });
 }
 
-const API_URL = 'http://192.168.1.199';
+const API_URL = 'https://betravelog.vercel.app/';
 
 //coupon
 export async function getCouponByIds(ids: string[]) {
@@ -237,3 +235,67 @@ export async function getCouponByIds(ids: string[]) {
     }
 }
 
+
+// PAYOS API
+export async function createPayOSLink(amount: number, returnUrl: string, cancelUrl: string) {
+    try {
+        const response = await fetch(`${API_URL}/api/create-payment-link`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                amount: amount, 
+                description: "Booking Tour",
+                returnUrl: returnUrl,
+                cancelUrl: cancelUrl
+            }),
+        });
+        const result = await response.json();
+        if (result.error === 0) return result.data; // Trả về object chứa checkoutUrl và orderCode
+        throw new Error(result.message);
+    } catch (error) {
+        console.error("Error creating payment link:", error);
+        return null;
+    }
+}
+
+export async function checkPaymentStatus(orderCode: number) {
+    try {
+        const response = await fetch(`${API_URL}/api/check-payment-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderCode }),
+        });
+        const result = await response.json();
+        if (result.error === 0) return result.data; // Trả về thông tin đơn hàng
+        return null;
+    } catch (error) {
+        console.error("Error checking status:", error);
+        return null;
+    }
+}
+
+export async function getBookingsByEmail(email: string) {
+    if (!email) return [];
+    
+    try {
+        // Query tìm trong collection 'bookings' có contactEmail trùng với email user
+        const q = query(
+            collection(db, "bookings"), 
+            where("contactEmail", "==", email)
+            // orderBy("createAt", "desc") // Bạn có thể thêm index trong Firestore để sort
+        );
+        
+        const snapshot = await getDocs(q);
+        const bookings = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            // Xử lý timestamp nếu cần
+            // createAt: doc.data().createAt?.toDate() 
+        }));
+        
+        return bookings;
+    } catch (error) {
+        console.error("Error fetching user bookings:", error);
+        return [];
+    }
+}

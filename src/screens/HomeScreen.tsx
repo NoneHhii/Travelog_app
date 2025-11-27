@@ -11,14 +11,12 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
-  FlatList, // Import FlatList từ Code 1
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TextComponent } from "../components/TextComponent";
 import { MenuComponent } from "../components/MenuComponent";
 import { colors } from "../constants/colors";
-// --- THAY ĐỔI: Import TravelItem thay vì Slider ---
-import { TravelItem } from "../components/TravelItem"; 
+import { Slider } from "../components/Slider";
 import { getAllTravel } from "../api/apiClient";
 import {
   NativeStackNavigationProp,
@@ -27,7 +25,7 @@ import {
 
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/RootNavigator";
+import { RootStackParamList } from "../navigation/RootNavigator";  // Assuming RootNavigator exports this
 import { useAuth } from "../hooks/useAuth";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -35,16 +33,16 @@ const BUTTON_SIZE = 65;
 const FLOATING_BUTTON_POSITION_BOTTOM = 30;
 const FLOATING_BUTTON_POSITION_RIGHT = 20;
 
-// --- Interfaces từ Code 2 ---
 export interface Itinerary {
   day: number;
   details: string;
   title: string;
 }
 
-export interface travel {
+export default interface travel {
   id: string;
   departurePoint: string;
+  // Sửa lại: Dùng destinationIDs thay vì destinationID nếu API trả về mảng
   destinationIDs: string[];
   images: string[];
   description: string;
@@ -56,14 +54,16 @@ export interface travel {
   duration: {
     days: number,
     nights: number,
-  }
+  },
+  transport: "Máy bay" | "Xe khách" | "Tàu thuyền",
+  status: boolean,
 }
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// --- Hook Data từ Code 2 ---
 const useTravelData = () => {
+  // Sửa lại: Sử dụng kiểu travel[] thay vì any[]
   const [travels, setTravels] = useState<travel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -73,6 +73,7 @@ const useTravelData = () => {
       try {
         setIsLoading(true);
         const data = await getAllTravel();
+        // Cần ép kiểu nếu getAllTravel() không trả về đúng kiểu travel[]
         setTravels(data as travel[]);
         setError(null);
       } catch (err) {
@@ -86,7 +87,6 @@ const useTravelData = () => {
   return { travels, isLoading, error };
 };
 
-// --- Hook Button từ Code 2 ---
 const useDraggableFloatingButton = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const pan = useRef(new Animated.ValueXY()).current;
@@ -147,15 +147,14 @@ const useDraggableFloatingButton = () => {
 
   const animatedStyle = {
     transform: [{ translateX: pan.x }, { translateY: pan.y }],
-  } as any;
+  } as any; // Tạm thời dùng 'as any' để tránh lỗi type
 
   return { panHandlers: panResponder.panHandlers, animatedStyle };
 };
 
-// --- Header từ Code 2 ---
-const HomeHeader: React.FC<{ onSearchPress: () => void; name: string }> = ({
+const HomeHeader: React.FC<{ onSearchPress: () => void, name: string }> = ({
   onSearchPress,
-  name,
+  name
 }) => (
   <LinearGradient
     colors={["#E0F7FF", "#FFFFFF"]}
@@ -216,8 +215,11 @@ const HomeHeader: React.FC<{ onSearchPress: () => void; name: string }> = ({
   </LinearGradient>
 );
 
-// --- Menu từ Code 2 ---
-const MenuGrid: React.FC = () => (
+interface MenuGProp {
+  navigate: (string) => void,
+}
+
+const MenuGrid: React.FC<MenuGProp> = ({navigate}) => (
   <View style={styles.menuGridContainer}>
     <TextComponent
       text="Bạn muốn khám phá điều gì?"
@@ -226,33 +228,26 @@ const MenuGrid: React.FC = () => (
       color="#0A2C4D"
       styles={styles.sectionTitle}
     />
+    
     <View style={styles.menuRow}>
-      <MenuComponent
+       {/* Sửa lại title thành Tiếng Việt */}
+       <MenuComponent
         title="Chuyến bay"
         url={require("../../assets/airplane.png")}
         bgColor="#EAF2FF"
+        onPress={() => navigate("Máy bay")}
       />
-      <MenuComponent
-        title="Khách sạn"
-        url={require("../../assets/hotel.png")}
-        bgColor="#F0EAFE"
-      />
-      <MenuComponent
-        title="Thuê xe"
-        url={require("../../assets/car-rental.png")}
-        bgColor="#E5F8F0"
-      />
-      <MenuComponent
+       <MenuComponent
         title="Hoạt động"
         url={require("../../assets/think-to-do.png")}
         bgColor="#FFF9E6"
+        onPress={() => navigate("MissionScreen")}
       />
-    </View>
-    <View style={styles.menuRow}>
       <MenuComponent
-        title="Xe khách"
+        title="Xe Bus"
         url={require("../../assets/bus-shuttle.png")}
         bgColor="#FFF0F0"
+        onPress={() => navigate("Xe khách")}
       />
       <MenuComponent
         title="Sự kiện"
@@ -263,13 +258,13 @@ const MenuGrid: React.FC = () => (
         title="Du thuyền"
         url={require("../../assets/cruise-ship.png")}
         bgColor="#EAF8FF"
+        onPress={() => navigate("Tàu thuyền")}
       />
-      <View style={{ width: 70, marginHorizontal: 8 }} />
+      {/* <View style={{ width: 70, marginHorizontal: 8 }} /> */}
     </View>
   </View>
 );
 
-// --- Offers từ Code 2 ---
 const OffersSection: React.FC = () => (
   <View style={styles.offersContainer}>
     <TextComponent
@@ -327,13 +322,11 @@ const OffersSection: React.FC = () => (
   </View>
 );
 
-// --- TRAVEL SECTION: DÙNG LOGIC CỦA CODE 1 (FlatList + TravelItem) ---
 interface TravelSectionProps {
   travels: travel[];
   onPressItem: (item: travel) => void;
   title: string,
 }
-
 const TravelSection: React.FC<TravelSectionProps> = ({
   travels,
   onPressItem,
@@ -355,23 +348,15 @@ const TravelSection: React.FC<TravelSectionProps> = ({
         />
       </TouchableOpacity>
     </View>
-    
-    {/* THAY ĐỔI: Sử dụng FlatList và TravelItem như Code 1 */}
-    <FlatList
-      data={travels}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        // Truyền item và hàm onPress vào component TravelItem
-        <TravelItem travel={item} onPress={onPressItem} />
-      )}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 10 }}
+    <Slider
+      travels={travels}
+      RadiusTop={16}
+      RadiusBottom={16}
+      handleDetail={onPressItem}
     />
   </View>
 );
 
-// --- Button Chatbot từ Code 2 ---
 const DraggableChatbotButton: React.FC = () => {
   const { panHandlers, animatedStyle } = useDraggableFloatingButton();
 
@@ -393,12 +378,10 @@ const DraggableChatbotButton: React.FC = () => {
   );
 };
 
-// --- MAIN SCREEN ---
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { travels, isLoading, error } = useTravelData();
-  const { user } = useAuth(); // Logic Auth từ Code 2
+  const {user} = useAuth();
 
-  // Logic chuyển trang (kết hợp)
   const handleDetail = useCallback(
     (travel: travel) => {
       navigation.navigate("TravelDetail", { travel });
@@ -437,16 +420,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return travels.filter(travel => travel.duration.days >= 5);
   }
 
+  const navigate = (string) => {
+    if(string === "MissionScreen") navigation.navigate(string);
+    else navigation.navigate('FilteredTours', {transportType: string});
+  }
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: 100 }}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={true} // Cho phép cuộn lồng nhau (quan trọng khi có Slider)
       >
         <HomeHeader onSearchPress={handleSearchPress} name={user?.displayName}/>
-        <MenuGrid />
+        <MenuGrid navigate={navigate}/>
         <OffersSection />
         <TravelSection travels={filterRecommend()} onPressItem={handleDetail} title="Những hành trình đang chờ bạn!"/>
         <TravelSection travels={filterReview()} onPressItem={handleDetail} title="Địa điểm siêu hot🔥🔥"/>
@@ -458,15 +446,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   );
 };
 
-// --- StyleSheet từ Code 2 (đẹp hơn) ---
+// --- StyleSheet ---
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.white, // Nền trắng chung
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#F4F7FF",
+     backgroundColor: '#F4F7FF', // Nền xanh nhạt cho phần cuộn
   },
   centerContainer: {
     flex: 1,
@@ -481,6 +469,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    // Màu nền Gradient đã được áp dụng bởi LinearGradient
   },
   headerTopRow: {
     flexDirection: "row",
@@ -494,6 +483,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: 16,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   searchBarContainer: {
     flexDirection: "row",
@@ -511,10 +505,15 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginRight: 10,
   },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: "#333",
+  },
   // Menu Grid
   menuGridContainer: {
     marginHorizontal: 20,
-    marginTop: -15,
+    marginTop: -15, // Kéo lên để nằm đè lên phần trắng của header
     backgroundColor: colors.white,
     borderRadius: 20,
     padding: 15,
@@ -523,20 +522,21 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    zIndex: 10,
+    zIndex: 10, // Đảm bảo menu nằm trên
   },
   sectionTitle: {
     marginBottom: 15,
   },
   menuRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     marginBottom: 15,
+    width: '100%',
   },
   // Offers
   offersContainer: {
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 20, // Tăng khoảng cách với Menu
     position: "relative",
   },
   offersRow: {
@@ -579,14 +579,14 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     resizeMode: "contain",
-    top: 130,
+    top: 130, // Điều chỉnh vị trí
     left: "50%",
     zIndex: 1,
   },
   // Travel Section
   travelSectionContainer: {
     marginTop: 25,
-    paddingBottom: 20,
+    paddingBottom: 20, // Thêm padding dưới cùng
   },
   sectionHeader: {
     flexDirection: "row",
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     right: FLOATING_BUTTON_POSITION_RIGHT,
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
-    zIndex: 9999,
+    zIndex: 9999, // Đảm bảo nút nổi lên trên
   },
   floatingButton: {
     width: BUTTON_SIZE,
@@ -611,11 +611,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 10,
-    shadowColor: "#0194F3",
+    shadowColor: "#0194F3", // Màu shadow xanh
     shadowOpacity: 0.4,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
 });
-
-export default HomeScreen;

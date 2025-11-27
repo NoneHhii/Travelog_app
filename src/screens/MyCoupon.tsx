@@ -20,6 +20,10 @@ export interface Coupon {
     miniumOrderValue: number,
     title: string,
     type: string,
+    timeEnd: Date,
+    timeStart: Date,
+    minOrderValue: number,
+    status: boolean,
 }
 
 export const MyCoupon:React.FC<Stack> = ({navigation}) => {
